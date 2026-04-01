@@ -4,7 +4,7 @@ import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import { db } from '@/db'
 import { users } from '@/db/schema'
 import { eq } from 'drizzle-orm'
-import bcrypt from 'bcryptjs'
+import bcrypt from 'bcrypt'
 
 declare module 'next-auth' {
   interface Session {
