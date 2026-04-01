@@ -1,0 +1,101 @@
+'use client'
+
+import { useState, useEffect, useCallback } from 'react'
+
+interface UseResilientTimerOptions {
+  durationMinutes: number
+  onComplete?: () => void
+  onTick?: (remainingMs: number) => void
+}
+
+export function useResilientTimer({
+  durationMinutes,
+  onComplete,
+  onTick,
+}: UseResilientTimerOptions) {
+  const [isRunning, setIsRunning] = useState(false)
+  const [remainingMs, setRemainingMs] = useState(durationMinutes * 60 * 1000)
+
+  const startTimer = useCallback(() => {
+    // Store the start time in localStorage (timezone-safe using Date.now())
+    const startTime = Date.now()
+    localStorage.setItem('focustracker_session_start', startTime.toString())
+    localStorage.setItem('focustracker_duration_ms', (durationMinutes * 60 * 1000).toString())
+    setIsRunning(true)
+  }, [durationMinutes])
+
+  const stopTimer = useCallback(() => {
+    localStorage.removeItem('focustracker_session_start')
+    localStorage.removeItem('focustracker_duration_ms')
+    setIsRunning(false)
+    setRemainingMs(durationMinutes * 60 * 1000)
+  }, [durationMinutes])
+
+  // Check for persisted session on mount
+  useEffect(() => {
+    if (typeof window === 'undefined') return
+
+    const storedStart = localStorage.getItem('focustracker_session_start')
+    const storedDuration = localStorage.getItem('focustracker_duration_ms')
+
+    if (storedStart && storedDuration) {
+      const startTime = parseInt(storedStart, 10)
+      const durationMs = parseInt(storedDuration, 10)
+      const elapsed = Date.now() - startTime
+
+      if (elapsed < durationMs) {
+        // Use a microtask to avoid setState in effect warning
+        queueMicrotask(() => {
+          setIsRunning(true)
+        })
+      } else {
+        localStorage.removeItem('focustracker_session_start')
+        localStorage.removeItem('focustracker_duration_ms')
+      }
+    }
+  }, [startTimer, stopTimer])
+
+  // Main timer loop - doesn't count ticks, always calculates real time
+  useEffect(() => {
+    if (!isRunning) return
+
+    const interval = setInterval(() => {
+      const storedStart = localStorage.getItem('focustracker_session_start')
+      const storedDuration = localStorage.getItem('focustracker_duration_ms')
+
+      if (!storedStart || !storedDuration) {
+        setIsRunning(false)
+        return
+      }
+
+      const startTime = parseInt(storedStart, 10)
+      const durationMs = parseInt(storedDuration, 10)
+      const elapsed = Date.now() - startTime
+      const remaining = Math.max(0, durationMs - elapsed)
+
+      setRemainingMs(remaining)
+      onTick?.(remaining)
+
+      if (remaining <= 0) {
+        localStorage.removeItem('focustracker_session_start')
+        localStorage.removeItem('focustracker_duration_ms')
+        setIsRunning(false)
+        onComplete?.()
+      }
+    }, 100) // Update every 100ms for smooth display
+
+    return () => clearInterval(interval)
+  }, [isRunning, onComplete, onTick])
+
+  const minutes = Math.floor(remainingMs / 60000)
+  const seconds = Math.floor((remainingMs % 60000) / 1000)
+
+  return {
+    minutes,
+    seconds,
+    remainingMs,
+    isRunning,
+    startTimer,
+    stopTimer,
+  }
+}

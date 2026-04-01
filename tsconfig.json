@@ -20,7 +20,8 @@
     ],
     "paths": {
       "@/*": ["./src/*"]
-    }
+    },
+    "types": ["next-auth", "next-auth/jwt"]
   },
   "include": [
     "next-env.d.ts",
