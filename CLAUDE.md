@@ -1,42 +1,43 @@
 # Product Requirements Document (PRD)
-## Nombre del Proyecto: FocusTracker Pro (Pomodoro Vitaminado)
+## Project Name: Prodo (FocusTracker Pro)
 
-### 1. Visión del Proyecto
-Crear una herramienta de productividad basada en la técnica Pomodoro, optimizada para el análisis de rendimiento a largo plazo. La aplicación vincula cada bloque de tiempo a metas macro y registra activamente distracciones para generar métricas de productividad diaria y mensual, permitiendo identificar fugas de tiempo en proyectos reales.
+### 1. Project Vision
+Create a productivity tool based on the Pomodoro technique, optimized for long-term performance analysis. The application links each time block to macro objectives and actively logs distractions to generate daily and monthly productivity metrics, allowing users to identify time leaks in real-world projects.
 
-### 2. Stack Tecnológico y Arquitectura
-* **Frontend/Backend:** Next.js (App Router) con React Compiler habilitado.
-* **Estilos:** Tailwind CSS + shadcn/ui.
-* **Autenticación:** NextAuth.js o Clerk (Soporte para Login con Email/Password y Google/GitHub).
-* **Base de Datos (Local):** PostgreSQL en contenedor Docker.
-* **Base de Datos (Producción):** Vercel Postgres (Capa gratuita).
-* **ORM:** Drizzle ORM (para manejo agnóstico de la DB mediante `DATABASE_URL`).
-* **Despliegue:** Vercel (Hobby Tier).
+### 2. Tech Stack and Architecture
+* **Frontend/Backend:** Next.js (App Router) with React Compiler enabled.
+* **Styling:** Tailwind CSS + shadcn/ui.
+* **Authentication:** NextAuth.js or Clerk (Support for Email/Password and Google/GitHub login).
+* **Database (Local):** PostgreSQL running in a Docker container.
+* **Database (Production):** Vercel Postgres (Free Tier).
+* **ORM:** Drizzle ORM (for agnostic DB management via `DATABASE_URL`).
+* **Deployment:** Vercel (Hobby Tier).
 
-### 3. Casos de Uso y Flujo Principal
-1.  **Autenticación:** El usuario inicia sesión para acceder a su entorno privado.
-2.  **Planificación:** El usuario selecciona un **Objetivo Macro** (ej: "MVP de SKINI" o "Nebula Space Runner") y define una tarea.
-3.  **Enfoque:** Inicia un Pomodoro. Si hay una interrupción, registra la **Distracción** con un solo click/hotkey sin detener el flujo.
-4.  **Cierre:** Al terminar, la sesión se guarda vinculada al usuario y a la tarea.
-5.  **Análisis:** El usuario revisa su dashboard de productividad mensual para ajustar sus hábitos.
+### 3. Core Use Cases & Main Flow
+1. **Authentication:** User logs in to access their private workspace.
+2. **Planning:** User selects a **Macro Objective** (e.g., "SKINI MVP" or "Nebula Space Runner") and defines a task.
+3. **Focus:** Starts a Pomodoro. If there is an interruption, they log the **Distraction** with a single click/hotkey without breaking their flow.
+4. **Completion:** Upon finishing, the session is saved and linked to the user and the task.
+5. **Analytics:** User reviews their monthly productivity dashboard to adjust their habits.
 
-### 4. Entidades y Modelo de Datos (Multi-usuario)
+### 4. Entities and Data Model (Multi-tenant)
 
-Todas las tablas incluyen `user_id: UUID` para garantizar el aislamiento de datos.
+All tables include a `user_id: string` to ensure data isolation.
 
-* **Objetivos Macro (Projects/Epics):** `id`, `user_id`, `name`, `color`, `status`, `created_at`.
-* **Tareas (Tasks):** `id`, `user_id`, `objective_id`, `title`, `is_completed`, `created_at`.
-* **Sesiones (Pomodoros):** `id`, `user_id`, `task_id`, `duration_minutes`, `status` (completed/aborted), `started_at`, `ended_at`.
-* **Distracciones (Logs):** `id`, `user_id`, `session_id`, `type` (internal/external), `note`, `timestamp`.
+* **Macro Objectives (Projects/Epics):** `id`, `user_id`, `name`, `color`, `status`, `created_at`.
+* **Tasks:** `id`, `user_id`, `objective_id`, `title`, `is_completed`, `created_at`.
+* **Sessions (Pomodoros):** `id`, `user_id`, `task_id`, `duration_minutes`, `status` (completed/aborted), `started_at`, `ended_at`.
+* **Distractions (Logs):** `id`, `user_id`, `session_id`, `type` (internal/external), `note`, `timestamp`.
 
-### 5. Características Clave
-* **Temporizador Resiliente:** Cálculo basado en diferencia de timestamps para evitar desfases al cambiar de pestaña.
-* **Registro de Fricción Cero:** Botón dedicado para marcar distracciones instantáneamente.
-* **Dashboard de Analíticas:** * Horas productivas por día (últimos 30 días).
-    * Distribución de tiempo por Objetivo Macro.
-    * Ratio de distracciones por sesión.
+### 5. Key Features
+* **Resilient Timer:** Calculations based on timestamp differences to prevent drift or desyncs when changing tabs.
+* **Zero-Friction Logging:** Dedicated hotkey/button to instantly mark distractions.
+* **Analytics Dashboard:** 
+    * Productive hours per day (last 30 days).
+    * Time distribution per Macro Objective.
+    * Distraction ratio per session.
 
-### 6. Restricciones y Optimizaciones
-* **Costo Cero (Producción):** La arquitectura en la nube debe mantenerse estrictamente dentro de los límites de las capas gratuitas (Vercel y Vercel Postgres).
-* **Costo Cero (Desarrollo):** El entorno de desarrollo utilizará Docker para correr PostgreSQL localmente. Esto es 100% gratuito (utiliza hardware local) y evita consumir la cuota mensual de la base de datos de producción durante la fase de programación y pruebas.
-* **Aislamiento de Componentes:** El temporizador debe ser un Client Component aislado para optimizar los re-renders gracias al React Compiler.
+### 6. Constraints and Optimizations
+* **Zero Cost (Production):** Cloud architecture must remain strictly within free-tier limits (Vercel and Vercel Postgres).
+* **Zero Cost (Development):** The development environment uses Docker to run PostgreSQL locally. This is 100% free (utilizes local hardware) and avoids consuming the production database's monthly quota during the programming and testing phase.
+* **Component Isolation:** The timer must be an isolated Client Component to optimize re-renders via the React Compiler.
