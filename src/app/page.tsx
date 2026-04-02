@@ -69,52 +69,60 @@ export default async function Page({ searchParams }: PageProps) {
         </div>
       </section>
 
-      <NewTaskPanel objectives={objectives} />
-
-      {view === 'plan' && !selectedObjectiveId && (
-        <DailyPlan items={planItems} />
-      )}
-
-      {view !== 'plan' && !selectedObjectiveId && (
-        <div className="space-y-6">
-          <div className="flex items-center gap-2">
-            <Target className="h-4 w-4 text-muted-foreground/60" />
-            <h2 className="text-sm font-semibold tracking-wide text-foreground uppercase opacity-80">Your Objectives</h2>
-          </div>
+      {objectives.length === 0 ? (
+        <div className="pt-6">
           <ObjectiveSelector objectives={objectives} selectedId={selectedObjectiveId} />
         </div>
-      )}
+      ) : (
+        <>
+          <NewTaskPanel objectives={objectives} />
 
-      {selectedObjectiveId && (() => {
-        const upcoming = planItems
-          .filter((i) => !i.isCompleted && i.taskId !== selectedTaskId)
-          .slice(0, 4)
-          .map((i) => ({ taskTitle: i.taskTitle, objectiveColor: i.objectiveColor }))
+          {view === 'plan' && !selectedObjectiveId && (
+            <DailyPlan items={planItems} />
+          )}
 
-        return (
-          <TaskSelector
-            objectives={objectives}
-            objectiveId={selectedObjectiveId}
-            tasks={tasks}
-            selectedTaskId={selectedTaskId}
-            defaultDuration={parseInt(duration, 10) || 25}
-            fromPlan={params.from === 'plan'}
-            upcomingTasks={upcoming}
-          />
-        )
-      })()}
+          {view !== 'plan' && !selectedObjectiveId && (
+            <div className="space-y-6">
+              <div className="flex items-center gap-2">
+                <Target className="h-4 w-4 text-muted-foreground/60" />
+                <h2 className="text-sm font-semibold tracking-wide text-foreground uppercase opacity-80">Your Objectives</h2>
+              </div>
+              <ObjectiveSelector objectives={objectives} selectedId={selectedObjectiveId} />
+            </div>
+          )}
 
-      {view !== 'plan' && !selectedObjectiveId && objectives.length > 0 && (
-        <Card className="p-4">
-          <div className="flex items-center justify-between">
-            <p className="text-sm text-muted-foreground">
-              {objectives.length} objective{objectives.length !== 1 ? 's' : ''} created
-            </p>
-            <Link href="/dashboard" className="text-sm font-medium text-primary hover:underline">
-              View analytics →
-            </Link>
-          </div>
-        </Card>
+          {selectedObjectiveId && (() => {
+            const upcoming = planItems
+              .filter((i) => !i.isCompleted && i.taskId !== selectedTaskId)
+              .slice(0, 4)
+              .map((i) => ({ taskTitle: i.taskTitle, objectiveColor: i.objectiveColor }))
+
+            return (
+              <TaskSelector
+                objectives={objectives}
+                objectiveId={selectedObjectiveId}
+                tasks={tasks}
+                selectedTaskId={selectedTaskId}
+                defaultDuration={parseInt(duration, 10) || 25}
+                fromPlan={params.from === 'plan'}
+                upcomingTasks={upcoming}
+              />
+            )
+          })()}
+
+          {view !== 'plan' && !selectedObjectiveId && objectives.length > 0 && (
+            <Card className="p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-muted-foreground">
+                  {objectives.length} objective{objectives.length !== 1 ? 's' : ''} created
+                </p>
+                <Link href="/dashboard" className="text-sm font-medium text-primary hover:underline">
+                  View analytics →
+                </Link>
+              </div>
+            </Card>
+          )}
+        </>
       )}
     </main>
   )
