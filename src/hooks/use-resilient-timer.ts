@@ -17,7 +17,19 @@ export function useResilientTimer({
   const [remainingMs, setRemainingMs] = useState(durationMinutes * 60 * 1000)
 
   const startTimer = useCallback(() => {
-    // Store the start time in localStorage (timezone-safe using Date.now())
+    // Check if there's already a running session (e.g. after page refresh)
+    const existingStart = localStorage.getItem('focustracker_session_start')
+    const existingDuration = localStorage.getItem('focustracker_duration_ms')
+    if (existingStart && existingDuration) {
+      const elapsed = Date.now() - parseInt(existingStart, 10)
+      if (elapsed < parseInt(existingDuration, 10)) {
+        // Resume existing session, don't overwrite
+        setIsRunning(true)
+        return
+      }
+    }
+
+    // Start fresh session
     const startTime = Date.now()
     localStorage.setItem('focustracker_session_start', startTime.toString())
     localStorage.setItem('focustracker_duration_ms', (durationMinutes * 60 * 1000).toString())

@@ -1,15 +1,21 @@
 import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { getDashboardData } from '@/actions/sessions'
+import { getDashboardData, getCalendarData } from '@/actions/sessions'
 import HoursBarChart from '@/components/dashboard/hours-bar-chart'
 import ObjectivePieChart from '@/components/dashboard/objective-pie-chart'
 import DistractionMetric from '@/components/dashboard/distraction-metric'
 import PeriodSelector from '@/components/dashboard/period-selector'
+import CalendarView from '@/components/dashboard/calendar-view'
+import DashboardTabs from '@/components/dashboard/dashboard-tabs'
+import { Timer, BarChart3, Clock, Target, Zap, Sparkles } from 'lucide-react'
+import { Card } from '@/components/ui/card'
 
 interface DashboardPageProps {
   searchParams: Promise<{
     period?: '7' | '30'
+    tab?: 'charts' | 'calendar'
+    month?: string
   }>
 }
 
@@ -22,80 +28,151 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
 
   const params = await searchParams
   const period = (params.period === '30' ? 30 : 7) as 7 | 30
+  const tab = params.tab || 'charts'
 
-  const data = await getDashboardData(period)
+  // Parse month param for calendar (default: current month)
+  const now = new Date()
+  let calYear = now.getFullYear()
+  let calMonth = now.getMonth() + 1
+  if (params.month) {
+    const [y, m] = params.month.split('-').map(Number)
+    if (y && m && m >= 1 && m <= 12) {
+      calYear = y
+      calMonth = m
+    }
+  }
+
+  const [data, calendarData] = await Promise.all([
+    getDashboardData(period),
+    tab === 'calendar' ? getCalendarData(calYear, calMonth) : Promise.resolve([]),
+  ])
+
+  const totalSessions = data.dailyHours.length > 0
+    ? data.dailyHours.reduce((sum, d) => sum + Math.ceil(d.hours * 60 / 25), 0)
+    : 0
+  const totalHours = data.dailyHours.reduce((sum, d) => sum + d.hours, 0)
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white to-gray-50 dark:from-gray-950 dark:to-black">
-      <header className="border-b border-gray-200 dark:border-gray-800">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            Dashboard
-          </h1>
-          <nav className="flex items-center gap-4">
-            <Link
-              href="/"
-              className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white"
-            >
-              Focus
-            </Link>
-            <Link
-              href="/api/auth/signout"
-              className="px-4 py-2 text-sm font-medium bg-red-600 text-white rounded-md hover:bg-red-700"
-            >
-              Logout
-            </Link>
-          </nav>
-        </div>
-      </header>
-
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Period selector */}
-        <div className="flex justify-between items-center mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Analytics
-          </h2>
-          <PeriodSelector currentPeriod={period} />
-        </div>
-
-        {/* Charts grid */}
-        <div className="grid grid-cols-1 gap-8 lg:grid-cols-2">
-          {/* Distraction metric */}
-          <DistractionMetric avgDistractions={data.avgDistractions} />
-
-          {/* Hours bar chart */}
-          <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Productive Hours
-            </h3>
-            <HoursBarChart data={data.dailyHours} />
+    <div className="min-h-screen bg-background">
+      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.32em] text-muted-foreground">
+              PRODO
+            </p>
+            <h1 className="text-3xl font-bold text-foreground">Análisis central</h1>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Tus métricas de productividad en un solo lugar, sin elementos innecesarios.
+            </p>
           </div>
+          <DashboardTabs currentTab={tab} currentPeriod={period} />
         </div>
 
-        {/* Objective pie chart - full width */}
-        {data.objectiveBreakdown.length > 0 && (
-          <div className="mt-8 bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-800 p-6">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">
-              Time by Objective
-            </h3>
-            <ObjectivePieChart data={data.objectiveBreakdown} />
-          </div>
+        {tab === 'calendar' && (
+          <CalendarView year={calYear} month={calMonth} data={calendarData} />
         )}
 
-        {/* Empty state */}
-        {data.dailyHours.length === 0 && (
-          <div className="mt-8 text-center p-12 bg-gray-100 dark:bg-gray-900 rounded-lg">
-            <p className="text-gray-500 dark:text-gray-400 mb-4">
-              No data yet. Start a Pomodoro session to see your analytics.
-            </p>
+        {tab === 'charts' && <>
+        {/* Stats overview cards */}
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
+          <Card className="p-5 flex items-center gap-4">
+            <div className="flex items-center justify-center size-10 rounded-lg bg-primary/10">
+              <Clock className="size-5 text-primary" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{totalSessions}</p>
+              <p className="text-xs text-muted-foreground">Sesiones</p>
+            </div>
+          </Card>
+          <Card className="p-5 flex items-center gap-4">
+            <div className="flex items-center justify-center size-10 rounded-lg bg-chart-2/10">
+              <Target className="size-5 text-chart-2" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{totalHours.toFixed(1)}</p>
+              <p className="text-xs text-muted-foreground">Horas productivas</p>
+            </div>
+          </Card>
+          <Card className="p-5 flex items-center gap-4">
+            <div className="flex items-center justify-center size-10 rounded-lg bg-destructive/10">
+              <Zap className="size-5 text-destructive" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold text-foreground">{data.avgDistractions.toFixed(1)}</p>
+              <p className="text-xs text-muted-foreground">Distracciones promedio</p>
+            </div>
+          </Card>
+          <Card className="p-5 rounded-3xl border border-border bg-muted/80">
+            <div className="flex items-start gap-3">
+              <div className="mt-1 rounded-2xl bg-primary/10 p-3 text-primary">
+                <Sparkles className="size-5" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-foreground">Tip rápido</p>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  Usa la página principal para comenzar tu próxima sesión y reducir las distracciones con un solo clic.
+                </p>
+              </div>
+            </div>
+          </Card>
+        </div>
+
+        {data.dailyHours.length > 0 ? (
+          <>
+            {/* Charts grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Distraction metric */}
+              <DistractionMetric avgDistractions={data.avgDistractions} />
+
+              {/* Hours bar chart */}
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart3 className="size-4 text-muted-foreground" />
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Productive Hours
+                  </h3>
+                </div>
+                <HoursBarChart data={data.dailyHours} />
+              </Card>
+            </div>
+
+            {/* Objective pie chart */}
+            {data.objectiveBreakdown.length > 0 && (
+              <Card className="p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <Target className="size-4 text-muted-foreground" />
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    Time by Objective
+                  </h3>
+                </div>
+                <ObjectivePieChart data={data.objectiveBreakdown} />
+              </Card>
+            )}
+          </>
+        ) : (
+          /* Empty state */
+          <Card className="flex flex-col items-center justify-center py-16 gap-4">
+            <div className="flex items-center justify-center size-16 rounded-full bg-muted">
+              <BarChart3 className="size-8 text-muted-foreground" />
+            </div>
+            <div className="text-center space-y-1">
+              <p className="text-foreground font-medium">
+                No data yet
+              </p>
+              <p className="text-sm text-muted-foreground">
+                Start a Pomodoro session to see your analytics.
+              </p>
+            </div>
             <Link
               href="/"
-              className="inline-block px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              className="mt-2 inline-flex items-center gap-2 px-5 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
             >
+              <Timer className="size-4" />
               Go Focus
             </Link>
-          </div>
+          </Card>
         )}
+        </>}
       </main>
     </div>
   )

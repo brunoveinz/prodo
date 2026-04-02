@@ -96,7 +96,7 @@ export async function completeTask(taskId: string) {
 
   const [updated] = await db
     .update(tasks)
-    .set({ isCompleted: true })
+    .set({ isCompleted: !task.isCompleted })
     .where(eq(tasks.id, taskId))
     .returning()
 

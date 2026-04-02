@@ -1,140 +1,165 @@
-'use client'
+"use client";
 
-import { useState } from 'react'
-import { useRouter } from 'next/navigation'
-import { signIn } from 'next-auth/react'
-import { registerUser } from '@/actions/auth'
-import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { signIn } from "next-auth/react";
+import { registerUser } from "@/actions/auth";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Loader2, Mail, Lock, User, AlertCircle } from "lucide-react";
 
 export default function RegisterForm() {
-  const router = useRouter()
-  const [name, setName] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
-  const [error, setError] = useState('')
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [error, setError] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault()
-    setError('')
-    setIsLoading(true)
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     try {
       if (password !== confirmPassword) {
-        setError('Passwords do not match')
-        setIsLoading(false)
-        return
+        setError("Passwords do not match");
+        setIsLoading(false);
+        return;
       }
 
       if (password.length < 8) {
-        setError('Password must be at least 8 characters')
-        setIsLoading(false)
-        return
+        setError("Password must be at least 8 characters");
+        setIsLoading(false);
+        return;
       }
 
-      const result = await registerUser({ name, email, password })
+      const result = await registerUser({ name, email, password });
 
       if (result.error) {
-        setError(result.error)
+        setError(result.error);
       } else {
         // Auto-login after registration
-        const signInResult = await signIn('credentials', {
+        const signInResult = await signIn("credentials", {
           email,
           password,
           redirect: false,
-        })
+        });
 
         if (signInResult?.ok) {
-          router.push('/')
+          router.push("/");
         } else {
-          router.push('/login')
+          router.push("/login");
         }
       }
     } catch {
-      setError('An error occurred. Please try again.')
+      setError("An error occurred. Please try again.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className="space-y-5">
       {error && (
-        <div className="p-3 bg-red-50 dark:bg-red-900 border border-red-200 dark:border-red-700 rounded text-red-600 dark:text-red-400 text-sm">
+        <div className="flex items-center gap-2 p-3 rounded-lg bg-destructive/10 border border-destructive/20 text-destructive text-sm">
+          <AlertCircle className="w-4 h-4 shrink-0" />
           {error}
         </div>
       )}
 
-      <div>
-        <Label htmlFor="name" className="text-sm font-medium">
+      <div className="space-y-2">
+        <Label htmlFor="name" className="text-sm font-medium text-foreground">
           Full Name
         </Label>
-        <Input
-          id="name"
-          type="text"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="John Doe"
-          required
-          disabled={isLoading}
-          className="mt-2"
-        />
+        <div className="relative">
+          <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            id="name"
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="John Doe"
+            required
+            disabled={isLoading}
+            className="pl-10 h-11 transition-all"
+          />
+        </div>
       </div>
 
-      <div>
-        <Label htmlFor="email" className="text-sm font-medium">
+      <div className="space-y-2">
+        <Label htmlFor="email" className="text-sm font-medium text-foreground">
           Email
         </Label>
-        <Input
-          id="email"
-          type="email"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          placeholder="you@example.com"
-          required
-          disabled={isLoading}
-          className="mt-2"
-        />
+        <div className="relative">
+          <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            id="email"
+            type="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="you@example.com"
+            required
+            disabled={isLoading}
+            className="pl-10 h-11 transition-all"
+          />
+        </div>
       </div>
 
-      <div>
-        <Label htmlFor="password" className="text-sm font-medium">
+      <div className="space-y-2">
+        <Label htmlFor="password" className="text-sm font-medium text-foreground">
           Password
         </Label>
-        <Input
-          id="password"
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          placeholder="••••••••"
-          required
-          disabled={isLoading}
-          className="mt-2"
-        />
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            id="password"
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            placeholder="Min. 8 characters"
+            required
+            disabled={isLoading}
+            className="pl-10 h-11 transition-all"
+          />
+        </div>
       </div>
 
-      <div>
-        <Label htmlFor="confirmPassword" className="text-sm font-medium">
+      <div className="space-y-2">
+        <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
           Confirm Password
         </Label>
-        <Input
-          id="confirmPassword"
-          type="password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          placeholder="••••••••"
-          required
-          disabled={isLoading}
-          className="mt-2"
-        />
+        <div className="relative">
+          <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <Input
+            id="confirmPassword"
+            type="password"
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            placeholder="Repeat your password"
+            required
+            disabled={isLoading}
+            className="pl-10 h-11 transition-all"
+          />
+        </div>
       </div>
 
-      <Button type="submit" disabled={isLoading} className="w-full">
-        {isLoading ? 'Creating account...' : 'Create Account'}
+      <Button
+        type="submit"
+        disabled={isLoading}
+        className="w-full h-11 text-sm font-medium transition-all"
+      >
+        {isLoading ? (
+          <span className="flex items-center gap-2">
+            <Loader2 className="w-4 h-4 animate-spin" />
+            Creating account...
+          </span>
+        ) : (
+          "Create Account"
+        )}
       </Button>
     </form>
-  )
+  );
 }

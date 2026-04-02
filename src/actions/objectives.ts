@@ -43,7 +43,6 @@ export async function createObjective(formData: FormData) {
     .returning()
 
   revalidatePath('/')
-  return newObjective
 }
 
 export async function updateObjectiveStatus(

@@ -6,6 +6,8 @@ import {
   boolean,
   integer,
   index,
+  date,
+  unique,
 } from 'drizzle-orm/pg-core'
 import { relations } from 'drizzle-orm'
 
@@ -134,11 +136,33 @@ export const distractions = pgTable(
   })
 )
 
+// Daily plan items - tasks planned for a specific day
+export const dailyPlanItems = pgTable(
+  'daily_plan_items',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    taskId: uuid()
+      .notNull()
+      .references(() => tasks.id, { onDelete: 'cascade' }),
+    date: date({ mode: 'string' }).notNull(),
+    sortOrder: integer().notNull().default(0),
+    createdAt: timestamp({ mode: 'date' }).defaultNow(),
+  },
+  (item) => ({
+    userDateIdx: index('daily_plan_user_date_idx').on(item.userId, item.date),
+    uniqueTaskDate: unique().on(item.taskId, item.date),
+  })
+)
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   objectives: many(objectives),
   accounts: many(accounts),
   sessions: many(sessions),
+  dailyPlanItems: many(dailyPlanItems),
 }))
 
 export const objectivesRelations = relations(objectives, ({ one, many }) => ({
@@ -155,6 +179,7 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
     references: [objectives.id],
   }),
   pomodoroSessions: many(pomodoroSessions),
+  dailyPlanItems: many(dailyPlanItems),
 }))
 
 export const pomodoroSessionsRelations = relations(pomodoroSessions, ({ one, many }) => ({
@@ -169,5 +194,16 @@ export const distractionsRelations = relations(distractions, ({ one }) => ({
   pomodoroSession: one(pomodoroSessions, {
     fields: [distractions.sessionId],
     references: [pomodoroSessions.id],
+  }),
+}))
+
+export const dailyPlanItemsRelations = relations(dailyPlanItems, ({ one }) => ({
+  user: one(users, {
+    fields: [dailyPlanItems.userId],
+    references: [users.id],
+  }),
+  task: one(tasks, {
+    fields: [dailyPlanItems.taskId],
+    references: [tasks.id],
   }),
 }))

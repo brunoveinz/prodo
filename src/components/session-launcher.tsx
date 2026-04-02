@@ -1,49 +1,196 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useToast } from '@/components/ui/notification'
+import { Play, CheckCircle, XCircle, Clock } from 'lucide-react'
 import PomodoroTimer from './pomodoro-timer'
+import DotGrid from './dot-grid'
+import Confetti from './confetti'
+import { completeTask } from '@/actions/tasks'
+
+type UpcomingTask = {
+  taskTitle: string
+  objectiveColor: string
+}
 
 interface SessionLauncherProps {
   taskId: string
+  objectiveId: string
+  taskTitle?: string
+  defaultDuration?: number
+  themeColor?: string
+  upcomingTasks?: UpcomingTask[]
 }
 
 type SessionState = 'idle' | 'running' | 'completed' | 'aborted'
 
-export default function SessionLauncher({ taskId }: SessionLauncherProps) {
+export default function SessionLauncher({
+  taskId,
+  objectiveId,
+  taskTitle,
+  defaultDuration = 25,
+  themeColor = '#3b82f6',
+  upcomingTasks = [],
+}: SessionLauncherProps) {
   const [sessionState, setSessionState] = useState<SessionState>('idle')
-  const [durationMinutes, setDurationMinutes] = useState('25')
+  const [showConfetti, setShowConfetti] = useState(false)
+  const durationMinutes = '25'
+  const toast = useToast()
+  const router = useRouter()
+
+  async function handleTaskDone() {
+    // Mark task as completed
+    await completeTask(taskId)
+
+    // Show confetti
+    setShowConfetti(true)
+
+    toast({
+      title: 'Tarea completada!',
+      description: 'Excelente trabajo.',
+      variant: 'success',
+    })
+
+    // After confetti, navigate to next task or back to plan
+    setTimeout(() => {
+      clearActiveSession()
+      // Stop the timer localStorage
+      localStorage.removeItem('focustracker_session_start')
+      localStorage.removeItem('focustracker_duration_ms')
+
+      if (upcomingTasks.length > 0) {
+        // There's no direct way to get the next task's IDs from upcomingTasks
+        // Go back to plan so user can pick next
+        router.push('/?view=plan')
+      } else {
+        router.push('/?view=plan')
+      }
+    }, 2000)
+  }
+
+  // Resume session on reload if timer is still running
+  useEffect(() => {
+    const storedStart = localStorage.getItem('focustracker_session_start')
+    const storedDuration = localStorage.getItem('focustracker_duration_ms')
+    const storedSession = localStorage.getItem('prodo_active_session')
+    if (storedStart && storedDuration && storedSession) {
+      const elapsed = Date.now() - parseInt(storedStart, 10)
+      const duration = parseInt(storedDuration, 10)
+      if (elapsed < duration) {
+        setSessionState('running')
+      }
+    }
+  }, [])
+
+  function saveActiveSession() {
+    if (typeof window === 'undefined') return
+
+    window.localStorage.setItem(
+      'prodo_active_session',
+      JSON.stringify({
+        taskId,
+        objectiveId,
+        taskTitle,
+        durationMinutes,
+        route: `/?objective=${objectiveId}&task=${taskId}&duration=${durationMinutes}`,
+      })
+    )
+  }
+
+  function clearActiveSession() {
+    if (typeof window === 'undefined') return
+    window.localStorage.removeItem('prodo_active_session')
+  }
 
   if (sessionState === 'running') {
     return (
-      <PomodoroTimer
-        taskId={taskId}
-        durationMinutes={parseInt(durationMinutes)}
-        onSessionEnd={(status) => {
-          setSessionState(status === 'completed' ? 'completed' : 'aborted')
-        }}
-      />
+      <div className="fixed inset-0 z-50 bg-[#09090b] text-foreground animate-in fade-in zoom-in-[0.98] duration-500 overflow-y-auto overflow-x-hidden">
+        {/* Fixed background and decorations */}
+        <div className="fixed inset-0 pointer-events-none">
+          <DotGrid color={themeColor} />
+          <div className="absolute inset-0 opacity-20" style={{ background: `radial-gradient(circle at center, ${themeColor}15 0%, transparent 70%)` }} />
+        </div>
+
+        {/* Date & time — top right (hidden on very small screens to save space) */}
+        <div className="hidden sm:block pointer-events-none">
+          <LiveClock />
+        </div>
+
+        {/* Upcoming tasks — bottom right */}
+        {upcomingTasks.length > 0 && (
+          <div className="fixed bottom-6 right-6 z-10 max-w-[220px] space-y-1.5 hidden sm:block pointer-events-none">
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2">A continuacion</p>
+            {upcomingTasks.slice(0, 4).map((t, i) => (
+              <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
+                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: t.objectiveColor }} />
+                <span className="text-xs text-white/50 truncate">{t.taskTitle}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {showConfetti && (
+          <div className="fixed inset-0 pointer-events-none z-50">
+            <Confetti color={themeColor} />
+          </div>
+        )}
+
+        {/* Scrollable Center Content */}
+        <div className="relative z-20 min-h-full w-full flex flex-col items-center justify-center p-4 py-12 sm:p-8">
+          <div className="w-full max-w-sm mx-auto">
+            <PomodoroTimer
+              taskId={taskId}
+              taskTitle={taskTitle}
+              durationMinutes={parseInt(durationMinutes)}
+              themeColor={themeColor}
+              onTaskDone={handleTaskDone}
+              onSessionEnd={(status) => {
+                clearActiveSession()
+                setSessionState(status === 'completed' ? 'completed' : 'aborted')
+              }}
+            />
+          </div>
+        </div>
+      </div>
     )
   }
 
   if (sessionState === 'completed') {
     return (
-      <Card className="p-6">
-        <div className="text-center space-y-4">
-          <div className="text-6xl">✨</div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Session Complete!
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            You finished a {durationMinutes} minute Pomodoro session. Great work!
-          </p>
+      <Card className="p-8">
+        <div className="flex flex-col items-center text-center space-y-5">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-emerald-500/10">
+            <CheckCircle className="h-10 w-10 text-emerald-500" />
+          </div>
+          {taskTitle && (
+            <span className="rounded-full bg-muted px-3 py-1 text-sm font-semibold text-foreground/80">
+              {taskTitle}
+            </span>
+          )}
+          <div className="space-y-1.5">
+            <h3 className="text-xl font-bold text-foreground">
+              Session Complete!
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              You finished a {durationMinutes}-minute Pomodoro session. Great
+              work staying focused!
+            </p>
+          </div>
+          <div className="flex items-center gap-3 rounded-xl bg-muted px-5 py-3">
+            <Clock className="h-4 w-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground">
+              {durationMinutes} minutes of deep focus
+            </span>
+          </div>
           <Button
             onClick={() => setSessionState('idle')}
-            className="w-full"
+            className="w-full max-w-xs"
+            size="lg"
           >
+            <Play className="h-4 w-4 mr-2" />
             Start Another Session
           </Button>
         </div>
@@ -53,58 +200,109 @@ export default function SessionLauncher({ taskId }: SessionLauncherProps) {
 
   if (sessionState === 'aborted') {
     return (
-      <Card className="p-6">
-        <div className="text-center space-y-4">
-          <div className="text-6xl">⏸️</div>
-          <h3 className="text-xl font-semibold text-gray-900 dark:text-white">
-            Session Aborted
-          </h3>
-          <p className="text-gray-600 dark:text-gray-400">
-            Your session was interrupted. You can start a new one anytime.
-          </p>
+      <Card className="p-8">
+        <div className="flex flex-col items-center text-center space-y-5">
+          <div className="flex h-20 w-20 items-center justify-center rounded-full bg-muted">
+            <XCircle className="h-10 w-10 text-muted-foreground" />
+          </div>
+          {taskTitle && (
+            <span className="rounded-full bg-muted px-3 py-1 text-sm font-semibold text-foreground/80">
+              {taskTitle}
+            </span>
+          )}
+          <div className="space-y-1.5">
+            <h3 className="text-xl font-bold text-foreground">
+              Session Ended Early
+            </h3>
+            <p className="text-sm text-muted-foreground max-w-xs">
+              No worries -- you can start a new session whenever you are ready to
+              refocus.
+            </p>
+          </div>
           <Button
             onClick={() => setSessionState('idle')}
-            className="w-full"
+            variant="secondary"
+            className="w-full max-w-xs"
+            size="lg"
           >
-            Start a New Session
+            <Play className="h-4 w-4 mr-2" />
+            Try Again
           </Button>
         </div>
       </Card>
     )
   }
 
-  // Idle state - show duration selector and start button
   return (
-    <Card className="p-6">
-      <div className="space-y-6">
-        <div>
-          <Label htmlFor="duration" className="text-sm font-medium">
-            Session Duration
-          </Label>
-          <Select value={durationMinutes} onValueChange={setDurationMinutes}>
-            <SelectTrigger id="duration" className="mt-2">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="5">5 minutes (Test)</SelectItem>
-              <SelectItem value="25">25 minutes (Standard)</SelectItem>
-              <SelectItem value="50">50 minutes (Extended)</SelectItem>
-              <SelectItem value="90">90 minutes (Deep Focus)</SelectItem>
-            </SelectContent>
-          </Select>
+    <div className="relative overflow-hidden rounded-[2rem] border border-border/30 bg-background/50 backdrop-blur-2xl shadow-2xl p-8 sm:p-12 transition-all duration-500">
+      {/* Background abstract gradients */}
+      <div className="pointer-events-none absolute -inset-px opacity-30 mix-blend-screen transition-opacity duration-1000">
+        <div className="absolute top-0 left-1/4 w-[40%] h-32 bg-primary/20 blur-[100px] rounded-full" />
+        <div className="absolute bottom-0 right-1/4 w-[30%] h-32 bg-emerald-500/10 blur-[100px] rounded-full" />
+      </div>
+
+      <div className="relative z-10 flex flex-col items-center text-center space-y-8">
+        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary/30 ring-1 ring-border/50 shadow-inner">
+          <Clock className="h-7 w-7 text-primary animate-pulse" style={{ animationDuration: '3s' }} />
+        </div>
+        
+        <div className="space-y-3 max-w-lg">
+          {taskTitle && (
+            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-secondary/50 border border-border/40 mb-2">
+              <span className="w-2 h-2 rounded-full animate-pulse" style={{ backgroundColor: themeColor }} />
+              <span className="text-xs font-semibold text-foreground tracking-wide">{taskTitle}</span>
+            </div>
+          )}
+          <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
+            Entra en la zona.
+          </h3>
+          <p className="text-[15px] font-medium text-muted-foreground">
+            Tu próximo ciclo de enfoque profundo de 25 minutos está listo. Cierra distracciones.
+          </p>
         </div>
 
         <Button
-          onClick={() => setSessionState('running')}
-          className="w-full h-12 text-lg font-semibold"
+          onClick={() => {
+            saveActiveSession()
+            setSessionState('running')
+            toast({
+              title: 'Modo Deep Work activado',
+              description: 'Tu sesión inmersiva ha comenzado.',
+              variant: 'info',
+            })
+          }}
+          size="lg"
+          className="relative overflow-hidden w-full max-w-[280px] h-14 rounded-2xl text-[15px] font-bold shadow-xl transition-all hover:scale-[1.02] mt-6"
+          style={{ backgroundColor: themeColor, color: '#fff', boxShadow: `0 0 20px ${themeColor}40` }}
         >
-          Start Session
+          <div className="absolute inset-0 bg-white/20 hover:bg-white/30 transition-colors" />
+          <Play className="h-5 w-5 mr-3 fill-current" />
+          Iniciar Pomodoro (25m)
         </Button>
 
-        <p className="text-xs text-gray-500 dark:text-gray-400 text-center">
-          💡 Tip: Press spacebar during the session to log a distraction
+        <p className="text-xs text-muted-foreground/80 flex items-center justify-center gap-2 animate-in fade-in delay-200">
+          Presiona <kbd className="inline-flex items-center rounded-md border border-border/60 bg-secondary/50 px-2 py-0.5 text-[10px] font-mono font-bold text-muted-foreground shadow-sm">Espacio</kbd> durante la sesión para registrar una distracción
         </p>
       </div>
-    </Card>
+    </div>
+  )
+}
+
+function LiveClock() {
+  const [now, setNow] = useState(new Date())
+
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 1000)
+    return () => clearInterval(interval)
+  }, [])
+
+  const date = now.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
+  const time = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+
+  return (
+    <div className="absolute top-6 right-6 z-10 text-right">
+      <p className="text-sm font-mono font-medium text-white/60 tabular-nums">{time}</p>
+      <p className="text-[11px] text-white/30 capitalize">{date}</p>
+    </div>
   )
 }

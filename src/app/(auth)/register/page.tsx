@@ -1,39 +1,48 @@
-import { auth } from '@/lib/auth'
-import { redirect } from 'next/navigation'
-import Link from 'next/link'
-import RegisterForm from '@/components/register-form'
-import { Card } from '@/components/ui/card'
+import { auth } from "@/lib/auth";
+import { redirect } from "next/navigation";
+import Link from "next/link";
+import RegisterForm from "@/components/register-form";
+import { Sparkles } from "lucide-react";
 
 export default async function RegisterPage() {
-  const session = await auth()
+  const session = await auth();
 
   if (session) {
-    redirect('/')
+    redirect("/");
   }
 
   return (
-    <Card className="p-8">
-      <div className="space-y-6">
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-            FocusTracker Pro
-          </h1>
-          <p className="mt-2 text-gray-600 dark:text-gray-400">
-            Create a new account
-          </p>
+    <div className="space-y-8">
+      {/* Logo - visible on mobile only since the left panel has it on md+ */}
+      <div className="text-center md:text-left space-y-2">
+        <div className="md:hidden flex flex-col items-center md:items-start mb-8">
+          <div className="inline-flex items-center gap-2">
+            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-primary/10 text-primary">
+              <Sparkles className="w-5 h-5" />
+            </div>
+            <span className="text-2xl font-bold tracking-tight text-foreground">PRODO</span>
+          </div>
+          <p className="text-sm font-medium text-muted-foreground mt-2">Focus & Build.</p>
         </div>
-
-        <RegisterForm />
-
-        <div className="text-center">
-          <p className="text-gray-600 dark:text-gray-400">
-            Already have an account?{' '}
-            <Link href="/login" className="text-blue-600 hover:underline dark:text-blue-400">
-              Sign In
-            </Link>
-          </p>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight text-foreground">
+          Crea tu cuenta
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Comienza a trackear tu trabajo profundo y multiplica tu productividad.
+        </p>
       </div>
-    </Card>
-  )
+
+      <RegisterForm />
+
+      <p className="text-center text-sm text-muted-foreground">
+        Already have an account?{" "}
+        <Link
+          href="/login"
+          className="font-medium text-primary hover:text-primary/80 transition-colors"
+        >
+          Sign in
+        </Link>
+      </p>
+    </div>
+  );
 }

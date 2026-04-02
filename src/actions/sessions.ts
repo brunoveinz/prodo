@@ -2,7 +2,7 @@
 
 import { db } from '@/db'
 import { pomodoroSessions, distractions, tasks, objectives } from '@/db/schema'
-import { eq, and, gte, count, sql } from 'drizzle-orm'
+import { eq, and, gte, lt, count, sql, sum } from 'drizzle-orm'
 import { refresh } from 'next/cache'
 import { auth } from '@/lib/auth'
 
@@ -138,4 +138,92 @@ export async function getDashboardData(days: 7 | 30 = 7) {
     })),
     avgDistractions: Number(avgDistractions.toFixed(1)),
   }
+}
+
+export async function getCalendarData(year: number, month: number) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error('Not authenticated')
+  }
+
+  // month is 1-indexed (1=Jan)
+  const startDate = new Date(year, month - 1, 1)
+  const endDate = new Date(year, month, 1)
+
+  const data = await db
+    .select({
+      date: sql<string>`DATE(${pomodoroSessions.startedAt})`,
+      sessionCount: count(pomodoroSessions.id),
+      hours: sql<number>`SUM(${pomodoroSessions.durationMinutes}) / 60.0`,
+      objectiveColors: sql<string[]>`ARRAY_AGG(DISTINCT ${objectives.color})`,
+    })
+    .from(pomodoroSessions)
+    .innerJoin(tasks, eq(pomodoroSessions.taskId, tasks.id))
+    .innerJoin(objectives, eq(tasks.objectiveId, objectives.id))
+    .where(
+      and(
+        eq(objectives.userId, session.user.id),
+        eq(pomodoroSessions.status, 'completed'),
+        gte(pomodoroSessions.startedAt, startDate),
+        lt(pomodoroSessions.startedAt, endDate)
+      )
+    )
+    .groupBy(sql`DATE(${pomodoroSessions.startedAt})`)
+
+  return data.map((item) => ({
+    date: item.date,
+    sessionCount: Number(item.sessionCount),
+    hours: Number(Number(item.hours).toFixed(2)),
+    objectiveColors: item.objectiveColors || [],
+  }))
+}
+
+export async function getDayDetail(dateStr: string) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error('Not authenticated')
+  }
+
+  const dayStart = new Date(dateStr + 'T00:00:00')
+  const dayEnd = new Date(dateStr + 'T23:59:59.999')
+
+  const data = await db
+    .select({
+      taskTitle: tasks.title,
+      objectiveName: objectives.name,
+      objectiveColor: objectives.color,
+      sessionCount: count(pomodoroSessions.id),
+      totalMinutes: sql<number>`SUM(${pomodoroSessions.durationMinutes})`,
+      distractionCount: sql<number>`(
+        SELECT COUNT(*)::int FROM distractions d
+        WHERE d.session_id IN (
+          SELECT ps2.id FROM pomodoro_sessions ps2
+          WHERE ps2.task_id = ${tasks.id}
+          AND ps2.started_at >= ${dayStart}
+          AND ps2.started_at <= ${dayEnd}
+          AND ps2.status = 'completed'
+        )
+      )`,
+    })
+    .from(pomodoroSessions)
+    .innerJoin(tasks, eq(pomodoroSessions.taskId, tasks.id))
+    .innerJoin(objectives, eq(tasks.objectiveId, objectives.id))
+    .where(
+      and(
+        eq(objectives.userId, session.user.id),
+        eq(pomodoroSessions.status, 'completed'),
+        gte(pomodoroSessions.startedAt, dayStart),
+        lt(pomodoroSessions.startedAt, dayEnd)
+      )
+    )
+    .groupBy(tasks.id, tasks.title, objectives.name, objectives.color)
+
+  return data.map((item) => ({
+    taskTitle: item.taskTitle,
+    objectiveName: item.objectiveName,
+    objectiveColor: item.objectiveColor,
+    sessionCount: Number(item.sessionCount),
+    totalMinutes: Number(item.totalMinutes),
+    distractionCount: Number(item.distractionCount),
+  }))
 }

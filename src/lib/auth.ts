@@ -1,8 +1,13 @@
-import NextAuth, { type DefaultSession } from 'next-auth'
+import NextAuth from 'next-auth'
 import Credentials from 'next-auth/providers/credentials'
 import { DrizzleAdapter } from '@auth/drizzle-adapter'
 import { db } from '@/db'
-import { users } from '@/db/schema'
+import {
+  users,
+  accounts,
+  sessions as authSessions,
+  verificationTokens,
+} from '@/db/schema'
 import { eq } from 'drizzle-orm'
 import bcrypt from 'bcrypt'
 
@@ -10,12 +15,20 @@ declare module 'next-auth' {
   interface Session {
     user: {
       id: string
-    } & DefaultSession['user']
+      name?: string | null
+      email?: string | null
+      image?: string | null
+    }
   }
 }
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
-  adapter: DrizzleAdapter(db),
+  adapter: DrizzleAdapter(db, {
+    usersTable: users,
+    accountsTable: accounts,
+    sessionsTable: authSessions,
+    verificationTokensTable: verificationTokens,
+  }),
   session: { strategy: 'jwt' },
   providers: [
     Credentials({

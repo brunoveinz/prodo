@@ -5,6 +5,7 @@ import {
   tasks,
   pomodoroSessions,
   distractions,
+  dailyPlanItems,
 } from '@/db/schema'
 
 // User types
@@ -29,3 +30,7 @@ export type SessionStatus = 'completed' | 'aborted'
 export type Distraction = InferSelectModel<typeof distractions>
 export type DistractionInsert = InferInsertModel<typeof distractions>
 export type DistractionType = 'internal' | 'external'
+
+// Daily Plan Item types
+export type DailyPlanItem = InferSelectModel<typeof dailyPlanItems>
+export type DailyPlanItemInsert = InferInsertModel<typeof dailyPlanItems>
