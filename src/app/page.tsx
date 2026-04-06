@@ -8,6 +8,7 @@ import ObjectiveSelector from '@/components/objective-selector'
 import TaskSelector from '@/components/task-selector'
 import NewTaskPanel from '@/components/new-task-panel'
 import DailyPlan from '@/components/daily-plan'
+import JornadaLauncher from '@/components/jornada-launcher'
 import ViewToggle from '@/components/view-toggle'
 import GuestTimer from '@/components/guest-timer'
 import { Card } from '@/components/ui/card'
@@ -78,7 +79,19 @@ export default async function Page({ searchParams }: PageProps) {
           <NewTaskPanel objectives={objectives} />
 
           {view === 'plan' && !selectedObjectiveId && (
-            <DailyPlan items={planItems} />
+            <>
+              <JornadaLauncher
+                tasks={planItems
+                  .filter((i) => !i.isCompleted)
+                  .map((i) => ({
+                    taskId: i.taskId,
+                    taskTitle: i.taskTitle,
+                    objectiveId: i.objectiveId,
+                    objectiveColor: i.objectiveColor,
+                  }))}
+              />
+              <DailyPlan items={planItems} />
+            </>
           )}
 
           {view !== 'plan' && !selectedObjectiveId && (

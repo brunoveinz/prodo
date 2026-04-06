@@ -1,10 +1,10 @@
 'use client'
 
-import { useTransition } from 'react'
+import { useState, useTransition } from 'react'
 import Link from 'next/link'
 import { completeTask } from '@/actions/tasks'
-import { removeTaskFromPlan } from '@/actions/daily-plan'
-import { Play, CheckCircle2, Circle, CalendarDays, X } from 'lucide-react'
+import { removeTaskFromPlan, reorderPlanItems } from '@/actions/daily-plan'
+import { Play, CheckCircle2, Circle, CalendarDays, X, GripVertical } from 'lucide-react'
 
 type PlanItem = {
   id: string
@@ -23,6 +23,36 @@ interface DailyPlanProps {
 
 export default function DailyPlan({ items }: DailyPlanProps) {
   const [isPending, startTransition] = useTransition()
+  const [dragIdx, setDragIdx] = useState<number | null>(null)
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
+  const [localItems, setLocalItems] = useState<PlanItem[] | null>(null)
+
+  const displayItems = localItems ?? items
+
+  function handleDragStart(idx: number) {
+    setDragIdx(idx)
+  }
+
+  function handleDragOver(e: React.DragEvent, idx: number) {
+    e.preventDefault()
+    setDragOverIdx(idx)
+  }
+
+  function handleDragEnd() {
+    if (dragIdx !== null && dragOverIdx !== null && dragIdx !== dragOverIdx) {
+      const reordered = [...displayItems]
+      const [moved] = reordered.splice(dragIdx, 1)
+      reordered.splice(dragOverIdx, 0, moved)
+      setLocalItems(reordered)
+
+      startTransition(async () => {
+        await reorderPlanItems(reordered.map((i) => i.id))
+        setLocalItems(null)
+      })
+    }
+    setDragIdx(null)
+    setDragOverIdx(null)
+  }
 
   function handleToggle(taskId: string) {
     startTransition(async () => {
@@ -69,11 +99,20 @@ export default function DailyPlan({ items }: DailyPlanProps) {
       {/* Task list */}
       <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
         <div className="divide-y divide-border">
-          {items.map((item) => (
+          {displayItems.map((item, idx) => (
             <div
               key={item.id}
-              className="group flex items-center gap-3 px-4 py-3 transition-all hover:bg-muted/50"
+              draggable
+              onDragStart={() => handleDragStart(idx)}
+              onDragOver={(e) => handleDragOver(e, idx)}
+              onDragEnd={handleDragEnd}
+              className={`group flex items-center gap-3 px-4 py-3 transition-all hover:bg-muted/50 ${
+                dragIdx === idx ? 'opacity-50' : ''
+              } ${dragOverIdx === idx && dragIdx !== idx ? 'border-t-2 border-primary' : ''}`}
             >
+              <div className="shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground/60 transition-colors">
+                <GripVertical className="h-4 w-4" />
+              </div>
               <button
                 onClick={() => handleToggle(item.taskId)}
                 disabled={isPending}

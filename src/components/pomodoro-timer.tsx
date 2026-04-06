@@ -8,7 +8,7 @@ import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/notification'
-import { AlertTriangle, Square, Zap, CheckCircle2 } from 'lucide-react'
+import { AlertTriangle, Square, Zap, CheckCircle2, Pause, Play } from 'lucide-react'
 
 interface PomodoroTimerProps {
   taskId: string
@@ -44,7 +44,7 @@ export default function PomodoroTimer({
 
   const totalMs = durationMinutes * 60 * 1000
 
-  const { minutes, seconds, remainingMs, isRunning, startTimer, stopTimer } = useResilientTimer({
+  const { minutes, seconds, remainingMs, isRunning, isPaused, startTimer, stopTimer, pauseTimer, resumeTimer } = useResilientTimer({
     durationMinutes,
     onComplete: handleSessionComplete,
   })
@@ -142,6 +142,29 @@ export default function PomodoroTimer({
     [toast]
   )
 
+  const handlePause = useCallback(() => {
+    pauseTimer()
+    // Log pause as a distraction
+    setDistractionBuffer((prev) => [
+      ...prev,
+      { type: 'external', note: 'Pausa manual', timestamp: new Date() },
+    ])
+    toast({
+      title: 'Sesion pausada',
+      description: 'Se registro como distraccion.',
+      variant: 'info',
+    })
+  }, [pauseTimer, toast])
+
+  const handleResume = useCallback(() => {
+    resumeTimer()
+    toast({
+      title: 'Sesion reanudada',
+      description: 'Vuelve al enfoque.',
+      variant: 'info',
+    })
+  }, [resumeTimer, toast])
+
   // Spacebar hotkey listener
   useEffect(() => {
     if (!isRunning) return
@@ -221,7 +244,7 @@ export default function PomodoroTimer({
               </span>
             )}
             <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground mt-1">
-              {isRunning ? 'Deep Work' : 'Paused'}
+              {isRunning ? 'Deep Work' : isPaused ? 'Pausado' : 'Paused'}
             </span>
           </div>
 
@@ -253,6 +276,29 @@ export default function PomodoroTimer({
             Press <kbd className="mx-1.5 px-1.5 py-0.5 rounded bg-secondary border border-border/50 font-mono text-foreground shadow-sm">Space</kbd> to record
           </p>
         </div>
+
+        {/* Pause/Resume button */}
+        {isRunning ? (
+          <Button
+            onClick={handlePause}
+            variant="outline"
+            size="lg"
+            className="w-full h-12 text-[14px] font-medium gap-2 border-amber-500/30 bg-amber-500/5 text-amber-400 hover:bg-amber-500/15 hover:border-amber-500/50 transition-all duration-300 active:scale-[0.98] rounded-xl"
+          >
+            <Pause className="size-4" />
+            Pausar Sesion
+          </Button>
+        ) : isPaused ? (
+          <Button
+            onClick={handleResume}
+            variant="outline"
+            size="lg"
+            className="w-full h-12 text-[14px] font-medium gap-2 border-blue-500/30 bg-blue-500/5 text-blue-400 hover:bg-blue-500/15 hover:border-blue-500/50 transition-all duration-300 active:scale-[0.98] rounded-xl animate-pulse"
+          >
+            <Play className="size-4" />
+            Reanudar Sesion
+          </Button>
+        ) : null}
 
         {/* Task done button */}
         {onTaskDone && (

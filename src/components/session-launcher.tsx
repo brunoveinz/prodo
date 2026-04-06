@@ -1,15 +1,24 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/notification'
-import { Play, CheckCircle, XCircle, Clock } from 'lucide-react'
+import { Play, CheckCircle, XCircle, Clock, Coffee, SkipForward } from 'lucide-react'
 import PomodoroTimer from './pomodoro-timer'
 import DotGrid from './dot-grid'
 import Confetti from './confetti'
 import { completeTask } from '@/actions/tasks'
+
+const SHORT_BREAK_MINUTES = 5
+const LONG_BREAK_MINUTES = 15
+const LONG_BREAK_EVERY = 4
+
+const RING_RADIUS = 120
+const RING_STROKE = 8
+const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
+const RING_SIZE = (RING_RADIUS + RING_STROKE) * 2
 
 type UpcomingTask = {
   taskTitle: string
@@ -25,7 +34,7 @@ interface SessionLauncherProps {
   upcomingTasks?: UpcomingTask[]
 }
 
-type SessionState = 'idle' | 'running' | 'completed' | 'aborted'
+type SessionState = 'idle' | 'running' | 'break' | 'completed' | 'aborted'
 
 export default function SessionLauncher({
   taskId,
@@ -37,9 +46,65 @@ export default function SessionLauncher({
 }: SessionLauncherProps) {
   const [sessionState, setSessionState] = useState<SessionState>('idle')
   const [showConfetti, setShowConfetti] = useState(false)
+  const [completedPomodoros, setCompletedPomodoros] = useState(0)
+  const [breakRemainingMs, setBreakRemainingMs] = useState(0)
+  const [breakIsRunning, setBreakIsRunning] = useState(false)
   const durationMinutes = '25'
   const toast = useToast()
   const router = useRouter()
+
+  // Break timer logic
+  const isLongBreak = completedPomodoros > 0 && completedPomodoros % LONG_BREAK_EVERY === 0
+  const breakDurationMinutes = isLongBreak ? LONG_BREAK_MINUTES : SHORT_BREAK_MINUTES
+
+  const startBreakTimer = useCallback(() => {
+    const breakMs = breakDurationMinutes * 60 * 1000
+    localStorage.setItem('prodo_break_start', Date.now().toString())
+    localStorage.setItem('prodo_break_duration', breakMs.toString())
+    setBreakRemainingMs(breakMs)
+    setBreakIsRunning(true)
+  }, [breakDurationMinutes])
+
+  const stopBreakTimer = useCallback(() => {
+    localStorage.removeItem('prodo_break_start')
+    localStorage.removeItem('prodo_break_duration')
+    setBreakIsRunning(false)
+    setBreakRemainingMs(0)
+  }, [])
+
+  // Break timer tick
+  useEffect(() => {
+    if (!breakIsRunning) return
+    const interval = setInterval(() => {
+      const s = localStorage.getItem('prodo_break_start')
+      const d = localStorage.getItem('prodo_break_duration')
+      if (!s || !d) { setBreakIsRunning(false); return }
+      const rem = Math.max(0, parseInt(d, 10) - (Date.now() - parseInt(s, 10)))
+      setBreakRemainingMs(rem)
+      if (rem <= 0) {
+        stopBreakTimer()
+        setSessionState('completed')
+        toast({ title: 'Descanso terminado', description: 'Listo para otra sesion.', variant: 'info' })
+      }
+    }, 100)
+    return () => clearInterval(interval)
+  }, [breakIsRunning, stopBreakTimer, toast])
+
+  // Resume break on reload
+  useEffect(() => {
+    const s = localStorage.getItem('prodo_break_start')
+    const d = localStorage.getItem('prodo_break_duration')
+    if (s && d) {
+      const rem = Math.max(0, parseInt(d, 10) - (Date.now() - parseInt(s, 10)))
+      if (rem > 0) {
+        setBreakRemainingMs(rem)
+        setBreakIsRunning(true)
+        setSessionState('break')
+      } else {
+        stopBreakTimer()
+      }
+    }
+  }, [stopBreakTimer])
 
   async function handleTaskDone() {
     // Mark task as completed
@@ -149,10 +214,73 @@ export default function SessionLauncher({
               onTaskDone={handleTaskDone}
               onSessionEnd={(status) => {
                 clearActiveSession()
-                setSessionState(status === 'completed' ? 'completed' : 'aborted')
+                if (status === 'completed') {
+                  setCompletedPomodoros((c) => c + 1)
+                  setSessionState('break')
+                  startBreakTimer()
+                  toast({ title: isLongBreak ? 'Descanso largo' : 'Descanso corto', variant: 'info' })
+                } else {
+                  setSessionState('aborted')
+                }
               }}
             />
           </div>
+        </div>
+      </div>
+    )
+  }
+
+  if (sessionState === 'break') {
+    const breakTotalMs = breakDurationMinutes * 60 * 1000
+    const breakProgress = breakTotalMs > 0 ? breakRemainingMs / breakTotalMs : 0
+    const breakDashOffset = RING_CIRCUMFERENCE * (1 - breakProgress)
+    const breakMin = String(Math.floor(breakRemainingMs / 60000)).padStart(2, '0')
+    const breakSec = String(Math.floor((breakRemainingMs % 60000) / 1000)).padStart(2, '0')
+
+    return (
+      <div className="fixed inset-0 z-50 bg-[#0c1220] text-foreground animate-in fade-in duration-500 overflow-y-auto overflow-x-hidden">
+        <div className="fixed inset-0 pointer-events-none z-0">
+          <div className="absolute top-1/4 left-1/3 w-[50vw] h-[50vh] rounded-full bg-blue-500/5 blur-[120px]" />
+          <div className="absolute bottom-1/4 right-1/3 w-[40vw] h-[40vh] rounded-full bg-indigo-500/5 blur-[120px]" />
+        </div>
+
+        <div className="hidden sm:block pointer-events-none">
+          <LiveClock />
+        </div>
+
+        <div className="relative z-20 min-h-full w-full flex flex-col items-center justify-center p-4 sm:p-8">
+          <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-3xl bg-blue-500/10 ring-1 ring-blue-500/20 mb-6 sm:mb-8">
+            <Coffee className="h-7 w-7 sm:h-9 sm:w-9 text-blue-400" />
+          </div>
+          <div className="space-y-1 sm:space-y-2 mb-6 sm:mb-8 text-center">
+            <h3 className="text-2xl sm:text-3xl font-bold text-white/90">Descanso</h3>
+            <p className="text-xs sm:text-sm text-blue-200/50">
+              {isLongBreak ? 'Descansa 15 minutos. Estirarte, hidratarte.' : 'Descansa 5 minutos. Respira profundo.'}
+            </p>
+          </div>
+
+          <div className="relative w-full aspect-square max-w-[220px] sm:max-w-[256px] mx-auto flex items-center justify-center mb-6 sm:mb-8">
+            <svg viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`} className="absolute inset-0 w-full h-full -rotate-90">
+              <circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} fill="none" strokeWidth={3} className="stroke-blue-500/10" />
+              <circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} fill="none" strokeWidth={5} strokeLinecap="round" strokeDasharray={RING_CIRCUMFERENCE} strokeDashoffset={breakDashOffset} className="transition-[stroke-dashoffset] duration-1000 ease-linear stroke-blue-400/60" />
+            </svg>
+            <div className="absolute inset-0 flex flex-col items-center justify-center text-center">
+              <span className="text-5xl sm:text-6xl font-mono font-medium tracking-tight text-blue-100/80 tabular-nums">{breakMin}:{breakSec}</span>
+            </div>
+          </div>
+
+          <Button
+            onClick={() => {
+              stopBreakTimer()
+              setSessionState('completed')
+            }}
+            variant="ghost"
+            size="sm"
+            className="text-xs text-blue-300/40 hover:text-blue-200 hover:bg-blue-500/10 gap-1.5 rounded-lg"
+          >
+            <SkipForward className="size-3" />
+            Saltar descanso
+          </Button>
         </div>
       </div>
     )

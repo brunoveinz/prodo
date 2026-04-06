@@ -63,3 +63,32 @@ export async function updateObjectiveStatus(
   revalidatePath('/')
   return updated
 }
+
+export async function deleteObjective(objectiveId: string) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error('Not authenticated')
+  }
+
+  await db
+    .delete(objectives)
+    .where(and(eq(objectives.id, objectiveId), eq(objectives.userId, session.user.id)))
+
+  revalidatePath('/')
+}
+
+export async function updateObjectiveColor(objectiveId: string, color: string) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error('Not authenticated')
+  }
+
+  const [updated] = await db
+    .update(objectives)
+    .set({ color })
+    .where(and(eq(objectives.id, objectiveId), eq(objectives.userId, session.user.id)))
+    .returning()
+
+  revalidatePath('/')
+  return updated
+}

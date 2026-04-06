@@ -117,6 +117,30 @@ export async function removeTaskFromPlan(planItemId: string) {
   revalidatePath('/')
 }
 
+export async function reorderPlanItems(orderedIds: string[]) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error('Not authenticated')
+  }
+
+  // Update each item's sortOrder based on its position in the array
+  await Promise.all(
+    orderedIds.map((id, index) =>
+      db
+        .update(dailyPlanItems)
+        .set({ sortOrder: index })
+        .where(
+          and(
+            eq(dailyPlanItems.id, id),
+            eq(dailyPlanItems.userId, session.user.id)
+          )
+        )
+    )
+  )
+
+  revalidatePath('/')
+}
+
 export async function createTaskAndAddToPlan(title: string, objectiveId: string) {
   const session = await auth()
   if (!session?.user?.id) {
