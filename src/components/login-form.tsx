@@ -7,8 +7,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Mail, Lock, AlertCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function LoginForm() {
+  const t = useTranslations("Auth.login");
   const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,12 +30,12 @@ export default function LoginForm() {
       });
 
       if (result?.error) {
-        setError("Invalid email or password");
+        setError(t("invalidCredentials"));
       } else if (result?.ok) {
         router.push("/");
       }
     } catch {
-      setError("An error occurred. Please try again.");
+      setError(t("error"));
     } finally {
       setIsLoading(false);
     }
@@ -50,7 +52,7 @@ export default function LoginForm() {
 
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-medium text-foreground">
-          Email
+          {t("emailLabel")}
         </Label>
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -59,7 +61,7 @@ export default function LoginForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            placeholder={t("emailPlaceholder")}
             required
             disabled={isLoading}
             className="pl-10 h-11 transition-all"
@@ -69,7 +71,7 @@ export default function LoginForm() {
 
       <div className="space-y-2">
         <Label htmlFor="password" className="text-sm font-medium text-foreground">
-          Password
+          {t("passwordLabel")}
         </Label>
         <div className="relative">
           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -78,7 +80,7 @@ export default function LoginForm() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Enter your password"
+            placeholder={t("passwordPlaceholder")}
             required
             disabled={isLoading}
             className="pl-10 h-11 transition-all"
@@ -94,10 +96,10 @@ export default function LoginForm() {
         {isLoading ? (
           <span className="flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
-            Signing in...
+            {t("signingIn")}
           </span>
         ) : (
-          "Sign In"
+          t("signIn")
         )}
       </Button>
     </form>

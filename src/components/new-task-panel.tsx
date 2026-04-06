@@ -10,6 +10,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { Plus } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 import type { Objective } from '@/lib/types'
 
 interface NewTaskPanelProps {
@@ -23,6 +24,7 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const toast = useToast()
   const router = useRouter()
+  const t = useTranslations('Forms.Tasks')
 
   const selectedObjective = objectives.find(o => o.id === objectiveId) || objectives[0]
   const themeColor = selectedObjective?.color || '#ffffff'
@@ -32,8 +34,8 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
 
     if (!title.trim() || !objectiveId) {
       toast({
-        title: 'Faltan datos',
-        description: 'Completa el título y selecciona un objetivo.',
+        title: t('missingData'),
+        description: t('missingDataDesc'),
         variant: 'error',
       })
       return
@@ -49,8 +51,8 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
       await addTaskToPlan(task.id)
 
       toast({
-        title: 'Tarea creada',
-        description: 'Agregada al plan del dia.',
+        title: t('successTitle'),
+        description: t('successPlan'),
         variant: 'success',
       })
 
@@ -61,8 +63,8 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
     } catch (error) {
       setIsSubmitting(false)
       toast({
-        title: 'Error al crear tarea',
-        description: (error as Error)?.message || 'Intenta de nuevo.',
+        title: t('errorTitle'),
+        description: (error as Error)?.message || t('errorDesc'),
         variant: 'error',
       })
     }
@@ -79,7 +81,7 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
         className="fixed top-6 right-8 z-40 h-[38px] rounded-full px-4 shadow-lg text-white font-medium hover:scale-105 transition-all outline-none border-none ring-0"
         style={{ backgroundColor: themeColor, boxShadow: `0 4px 14px ${themeColor}40` }}
       >
-        <Plus className="mr-1.5 h-4 w-4" /> Crear Tarea
+        <Plus className="mr-1.5 h-4 w-4" /> {t('createTask')}
       </Button>
 
       {isOpen && (
@@ -87,27 +89,27 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
           <div className="w-full max-w-md rounded-2xl border border-border/50 bg-card p-6 shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="flex items-center justify-between mb-6">
               <div>
-                <h2 className="text-xl font-bold text-foreground">Nueva Tarea</h2>
-                <p className="text-sm text-muted-foreground mt-1">Configura tu próximo ciclo de enfoque.</p>
+                <h2 className="text-xl font-bold text-foreground">{t('newTask')}</h2>
+                <p className="text-sm text-muted-foreground mt-1">{t('newTaskSub')}</p>
               </div>
               <button
                 type="button"
                 onClick={() => setIsOpen(false)}
                 className="rounded-full p-2 hover:bg-muted text-muted-foreground transition-colors"
-                title="Cerrar"
+                title={t('close')}
               >
-                Cerrar
+                {t('close')}
               </button>
             </div>
 
             <form onSubmit={handleSubmit} className="space-y-5">
               <div>
-                <Label htmlFor="taskTitle" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 block">Título</Label>
+                <Label htmlFor="taskTitle" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 block">{t('title')}</Label>
                 <Input
                   id="taskTitle"
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Ej. Diseñar flujo de onboarding"
+                  placeholder={t('titlePlaceholder')}
                   className="mt-1 h-11 rounded-xl bg-secondary/20 border-border/40 text-sm shadow-sm transition-all focus-visible:ring-1 focus-visible:ring-primary"
                   autoFocus
                 />
@@ -115,7 +117,7 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
 
               <div className="grid gap-5">
                 <div>
-                  <Label htmlFor="objective" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 block">Objetivo</Label>
+                  <Label htmlFor="objective" className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 block">{t('objective')}</Label>
                   <select
                     id="objective"
                     value={objectiveId}
@@ -138,7 +140,7 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
                   onClick={() => setIsOpen(false)}
                   className="rounded-xl px-5 font-medium hover:bg-muted"
                 >
-                  Cancelar
+                  {t('cancel')}
                 </Button>
                 <Button 
                   type="submit" 
@@ -146,7 +148,7 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
                   style={{ backgroundColor: themeColor, boxShadow: `0 4px 14px ${themeColor}30` }}
                   disabled={isSubmitting}
                 >
-                  {isSubmitting ? 'Creando...' : 'Comenzar'}
+                  {isSubmitting ? t('adding') : t('start')}
                 </Button>
               </div>
             </form>

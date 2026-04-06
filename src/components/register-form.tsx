@@ -8,8 +8,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Mail, Lock, User, AlertCircle } from "lucide-react";
+import { useTranslations } from "next-intl";
 
 export default function RegisterForm() {
+  const t = useTranslations("Auth.register");
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -25,13 +27,13 @@ export default function RegisterForm() {
 
     try {
       if (password !== confirmPassword) {
-        setError("Passwords do not match");
+        setError(t("passwordsDontMatch"));
         setIsLoading(false);
         return;
       }
 
       if (password.length < 8) {
-        setError("Password must be at least 8 characters");
+        setError(t("passwordShort"));
         setIsLoading(false);
         return;
       }
@@ -55,7 +57,7 @@ export default function RegisterForm() {
         }
       }
     } catch {
-      setError("An error occurred. Please try again.");
+      setError(t("error"));
     } finally {
       setIsLoading(false);
     }
@@ -72,7 +74,7 @@ export default function RegisterForm() {
 
       <div className="space-y-2">
         <Label htmlFor="name" className="text-sm font-medium text-foreground">
-          Full Name
+          {t("nameLabel")}
         </Label>
         <div className="relative">
           <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -81,7 +83,7 @@ export default function RegisterForm() {
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="John Doe"
+            placeholder={t("namePlaceholder")}
             required
             disabled={isLoading}
             className="pl-10 h-11 transition-all"
@@ -91,7 +93,7 @@ export default function RegisterForm() {
 
       <div className="space-y-2">
         <Label htmlFor="email" className="text-sm font-medium text-foreground">
-          Email
+          {t("emailLabel")}
         </Label>
         <div className="relative">
           <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -100,7 +102,7 @@ export default function RegisterForm() {
             type="email"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="you@example.com"
+            placeholder={t("emailPlaceholder")}
             required
             disabled={isLoading}
             className="pl-10 h-11 transition-all"
@@ -110,7 +112,7 @@ export default function RegisterForm() {
 
       <div className="space-y-2">
         <Label htmlFor="password" className="text-sm font-medium text-foreground">
-          Password
+          {t("passwordLabel")}
         </Label>
         <div className="relative">
           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -119,7 +121,7 @@ export default function RegisterForm() {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Min. 8 characters"
+            placeholder={t("passwordPlaceholder")}
             required
             disabled={isLoading}
             className="pl-10 h-11 transition-all"
@@ -129,7 +131,7 @@ export default function RegisterForm() {
 
       <div className="space-y-2">
         <Label htmlFor="confirmPassword" className="text-sm font-medium text-foreground">
-          Confirm Password
+          {t("confirmPasswordLabel")}
         </Label>
         <div className="relative">
           <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
@@ -138,7 +140,7 @@ export default function RegisterForm() {
             type="password"
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
-            placeholder="Repeat your password"
+            placeholder={t("confirmPasswordPlaceholder")}
             required
             disabled={isLoading}
             className="pl-10 h-11 transition-all"
@@ -154,10 +156,10 @@ export default function RegisterForm() {
         {isLoading ? (
           <span className="flex items-center gap-2">
             <Loader2 className="w-4 h-4 animate-spin" />
-            Creating account...
+            {t("creatingAccount")}
           </span>
         ) : (
-          "Create Account"
+          t("createBtn")
         )}
       </Button>
     </form>

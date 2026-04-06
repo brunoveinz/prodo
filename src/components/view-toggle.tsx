@@ -2,11 +2,13 @@
 
 import { useRouter, useSearchParams } from 'next/navigation'
 import { Target, CalendarDays } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 export default function ViewToggle() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const currentView = searchParams.get('view') || 'plan'
+  const t = useTranslations('ViewToggle')
 
   function setView(view: string) {
     router.push(`/?view=${view}`)
@@ -23,7 +25,7 @@ export default function ViewToggle() {
         }`}
       >
         <Target className="size-3.5" />
-        Objetivos
+        {t('objectives')}
       </button>
       <button
         onClick={() => setView('plan')}
@@ -34,7 +36,7 @@ export default function ViewToggle() {
         }`}
       >
         <CalendarDays className="size-3.5" />
-        Plan del Dia
+        {t('dailyPlan')}
       </button>
     </div>
   )

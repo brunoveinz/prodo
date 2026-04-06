@@ -10,6 +10,7 @@ import PomodoroTimer from './pomodoro-timer'
 import DotGrid from './dot-grid'
 import Confetti from './confetti'
 import { completeTask } from '@/actions/tasks'
+import { useTranslations } from 'next-intl'
 
 const SHORT_BREAK_MINUTES = 5
 const LONG_BREAK_MINUTES = 15
@@ -52,6 +53,8 @@ export default function SessionLauncher({
   const durationMinutes = '25'
   const toast = useToast()
   const router = useRouter()
+  const t = useTranslations('Session.Launcher')
+  const jt = useTranslations('Jornada')
 
   // Break timer logic
   const isLongBreak = completedPomodoros > 0 && completedPomodoros % LONG_BREAK_EVERY === 0
@@ -84,7 +87,7 @@ export default function SessionLauncher({
       if (rem <= 0) {
         stopBreakTimer()
         setSessionState('completed')
-        toast({ title: 'Descanso terminado', description: 'Listo para otra sesion.', variant: 'info' })
+        toast({ title: t('breakEnded'), description: t('readyForNext'), variant: 'info' })
       }
     }, 100)
     return () => clearInterval(interval)
@@ -114,8 +117,8 @@ export default function SessionLauncher({
     setShowConfetti(true)
 
     toast({
-      title: 'Tarea completada!',
-      description: 'Excelente trabajo.',
+      title: t('taskCompleted'),
+      description: t('excellentWork'),
       variant: 'success',
     })
 
@@ -131,7 +134,7 @@ export default function SessionLauncher({
       setCompletedPomodoros((c) => c + 1)
       setSessionState('break')
       startBreakTimer()
-      toast({ title: isLongBreakNext ? 'Descanso largo' : 'Descanso corto', variant: 'info' })
+      toast({ title: isLongBreakNext ? t('longBreak') : t('shortBreak'), variant: 'info' })
     }, 2000)
   }
 
@@ -186,11 +189,11 @@ export default function SessionLauncher({
         {/* Upcoming tasks — bottom right */}
         {upcomingTasks.length > 0 && (
           <div className="fixed bottom-6 right-6 z-10 max-w-[220px] space-y-1.5 hidden sm:block pointer-events-none">
-            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2">A continuacion</p>
-            {upcomingTasks.slice(0, 4).map((t, i) => (
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2">{jt('nextQueue')}</p>
+            {upcomingTasks.slice(0, 4).map((tr, i) => (
               <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
-                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: t.objectiveColor }} />
-                <span className="text-xs text-white/50 truncate">{t.taskTitle}</span>
+                <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: tr.objectiveColor }} />
+                <span className="text-xs text-white/50 truncate">{tr.taskTitle}</span>
               </div>
             ))}
           </div>
@@ -217,7 +220,7 @@ export default function SessionLauncher({
                   setCompletedPomodoros((c) => c + 1)
                   setSessionState('break')
                   startBreakTimer()
-                  toast({ title: isLongBreak ? 'Descanso largo' : 'Descanso corto', variant: 'info' })
+                  toast({ title: isLongBreak ? t('longBreak') : t('shortBreak'), variant: 'info' })
                 } else {
                   setSessionState('aborted')
                 }
@@ -252,9 +255,9 @@ export default function SessionLauncher({
             <Coffee className="h-7 w-7 sm:h-9 sm:w-9 text-blue-400" />
           </div>
           <div className="space-y-1 sm:space-y-2 mb-6 sm:mb-8 text-center">
-            <h3 className="text-2xl sm:text-3xl font-bold text-white/90">Descanso</h3>
+            <h3 className="text-2xl sm:text-3xl font-bold text-white/90">{jt('breakTitle')}</h3>
             <p className="text-xs sm:text-sm text-blue-200/50">
-              {isLongBreak ? 'Descansa 15 minutos. Estirarte, hidratarte.' : 'Descansa 5 minutos. Respira profundo.'}
+              {isLongBreak ? jt('breakLong') : jt('breakShort')}
             </p>
           </div>
 
@@ -278,7 +281,7 @@ export default function SessionLauncher({
             className="text-xs text-blue-300/40 hover:text-blue-200 hover:bg-blue-500/10 gap-1.5 rounded-lg"
           >
             <SkipForward className="size-3" />
-            Saltar descanso
+            {jt('skipBreak')}
           </Button>
         </div>
       </div>
@@ -299,17 +302,16 @@ export default function SessionLauncher({
           )}
           <div className="space-y-1.5">
             <h3 className="text-xl font-bold text-foreground">
-              Session Complete!
+              {t('sessionComplete')}
             </h3>
             <p className="text-sm text-muted-foreground max-w-xs">
-              You finished a {durationMinutes}-minute Pomodoro session. Great
-              work staying focused!
+              {t('finishedSession', { duration: durationMinutes })}
             </p>
           </div>
           <div className="flex items-center gap-3 rounded-xl bg-muted px-5 py-3">
             <Clock className="h-4 w-4 text-muted-foreground" />
             <span className="text-sm font-medium text-foreground">
-              {durationMinutes} minutes of deep focus
+              {t('minutesOfFocus', { duration: durationMinutes })}
             </span>
           </div>
           <Button
@@ -318,7 +320,7 @@ export default function SessionLauncher({
             size="lg"
           >
             <Play className="h-4 w-4 mr-2" />
-            Start Another Session
+            {t('startAnother')}
           </Button>
         </div>
       </Card>
@@ -339,11 +341,10 @@ export default function SessionLauncher({
           )}
           <div className="space-y-1.5">
             <h3 className="text-xl font-bold text-foreground">
-              Session Ended Early
+              {t('endedEarly')}
             </h3>
             <p className="text-sm text-muted-foreground max-w-xs">
-              No worries -- you can start a new session whenever you are ready to
-              refocus.
+              {t('noWorries')}
             </p>
           </div>
           <Button
@@ -353,7 +354,7 @@ export default function SessionLauncher({
             size="lg"
           >
             <Play className="h-4 w-4 mr-2" />
-            Try Again
+            {t('tryAgain')}
           </Button>
         </div>
       </Card>
@@ -381,10 +382,10 @@ export default function SessionLauncher({
             </div>
           )}
           <h3 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">
-            Entra en la zona.
+            {t('enterZone')}
           </h3>
           <p className="text-[15px] font-medium text-muted-foreground">
-            Tu próximo ciclo de enfoque profundo de 25 minutos está listo. Cierra distracciones.
+            {t('nextCycleReady')}
           </p>
         </div>
 
@@ -393,8 +394,8 @@ export default function SessionLauncher({
             saveActiveSession()
             setSessionState('running')
             toast({
-              title: 'Modo Deep Work activado',
-              description: 'Tu sesión inmersiva ha comenzado.',
+              title: t('deepWorkActivated'),
+              description: t('immersiveStarted'),
               variant: 'info',
             })
           }}
@@ -404,11 +405,11 @@ export default function SessionLauncher({
         >
           <div className="absolute inset-0 bg-white/20 hover:bg-white/30 transition-colors" />
           <Play className="h-5 w-5 mr-3 fill-current" />
-          Iniciar Pomodoro (25m)
+          {t('startPomodoro')}
         </Button>
 
         <p className="text-xs text-muted-foreground/80 flex items-center justify-center gap-2 animate-in fade-in delay-200">
-          Presiona <kbd className="inline-flex items-center rounded-md border border-border/60 bg-secondary/50 px-2 py-0.5 text-[10px] font-mono font-bold text-muted-foreground shadow-sm">Espacio</kbd> durante la sesión para registrar una distracción
+          {t('pressSpace').split('Space')[0]}<kbd className="inline-flex items-center rounded-md border border-border/60 bg-secondary/50 px-2 py-0.5 text-[10px] font-mono font-bold text-muted-foreground shadow-sm">Space</kbd>{t('pressSpace').split('Space')[1]}
         </p>
       </div>
     </div>

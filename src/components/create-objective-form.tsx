@@ -9,6 +9,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Card } from '@/components/ui/card'
 import { Plus, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 const PRESET_COLORS = [
   { name: 'Violet', value: '#8b5cf6' },
@@ -26,6 +27,7 @@ export default function CreateObjectiveForm() {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const toast = useToast()
+  const t = useTranslations('Forms.Objectives')
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -36,8 +38,8 @@ export default function CreateObjectiveForm() {
       await createObjective(formData)
 
       toast({
-        title: 'Objetivo creado',
-        description: 'Tu objetivo ahora aparece en la barra lateral y en la página principal.',
+        title: t('successTitle'),
+        description: t('successDesc'),
         variant: 'success',
       })
 
@@ -47,8 +49,8 @@ export default function CreateObjectiveForm() {
       router.refresh()
     } catch (error) {
       toast({
-        title: 'Error al crear objetivo',
-        description: (error as Error)?.message || 'Intenta nuevamente.',
+        title: t('errorTitle'),
+        description: (error as Error)?.message || t('errorDesc'),
         variant: 'error',
       })
     } finally {
@@ -66,7 +68,7 @@ export default function CreateObjectiveForm() {
         <Card className="flex h-full items-center justify-center gap-2 border-2 border-dashed border-border p-4 transition-all duration-200 hover:border-primary/40 hover:bg-muted/50 cursor-pointer">
           <Plus className="h-5 w-5 text-muted-foreground" />
           <span className="text-sm font-medium text-muted-foreground">
-            Nuevo objetivo
+            {t('newObjective')}
           </span>
         </Card>
       </button>
@@ -77,8 +79,8 @@ export default function CreateObjectiveForm() {
     <Card className="col-span-full p-5 border-2 border-primary/20 shadow-md animate-in fade-in slide-in-from-bottom-2 duration-200">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h4 className="text-sm font-semibold text-foreground">Crear objetivo</h4>
-          <p className="text-xs text-muted-foreground">Mantén tu productividad organizada con objetivos claros.</p>
+          <h4 className="text-sm font-semibold text-foreground">{t('createTitle')}</h4>
+          <p className="text-xs text-muted-foreground">{t('createSubtitle')}</p>
         </div>
         <button
           type="button"
@@ -92,13 +94,13 @@ export default function CreateObjectiveForm() {
       <form className="space-y-4" onSubmit={handleSubmit}>
         <div>
           <Label htmlFor="name" className="text-sm font-medium text-foreground">
-            Nombre
+            {t('name')}
           </Label>
           <Input
             id="name"
             name="name"
             type="text"
-            placeholder="Ej. Desarrollar MVP de PRODO"
+            placeholder={t('namePlaceholder')}
             required
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -107,7 +109,7 @@ export default function CreateObjectiveForm() {
         </div>
 
         <div>
-          <Label className="text-sm font-medium text-foreground">Color</Label>
+          <Label className="text-sm font-medium text-foreground">{t('color')}</Label>
           <div className="mt-2 flex items-center gap-2 flex-wrap">
             {PRESET_COLORS.map((color) => (
               <button
@@ -129,7 +131,7 @@ export default function CreateObjectiveForm() {
               value={selectedColor}
               onChange={(e) => setSelectedColor(e.target.value)}
               className="h-8 w-8 cursor-pointer rounded-full border-0 bg-transparent p-0"
-              title="Color personalizado"
+              title={t('customColor')}
             />
           </div>
           <input type="hidden" name="color" value={selectedColor} />
@@ -137,7 +139,7 @@ export default function CreateObjectiveForm() {
 
         <Button type="submit" className="w-full" size="sm" disabled={isSubmitting}>
           <Plus className="h-4 w-4 mr-1.5" />
-          {isSubmitting ? 'Creando...' : 'Crear objetivo'}
+          {isSubmitting ? t('creating') : t('createBtn')}
         </Button>
       </form>
     </Card>

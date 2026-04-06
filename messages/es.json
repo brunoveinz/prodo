@@ -24,5 +24,203 @@
     "expand": "Expandir barra",
     "collapse": "Contraer barra",
     "dist": "distr."
+  },
+  "Auth": {
+    "login": {
+      "focus": "Enfócate y Construye.",
+      "welcome": "Bienvenido de vuelta",
+      "subtitle": "Inicia sesión para continuar con tus ciclos de enfoque.",
+      "noAccount": "¿No tienes una cuenta?",
+      "createOne": "Crea una",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Ingresa tu contraseña",
+      "signingIn": "Iniciando sesión...",
+      "signIn": "Iniciar Sesión",
+      "invalidCredentials": "Correo o contraseña no válidos",
+      "error": "Ocurrió un error. Por favor intenta nuevamente."
+    },
+    "register": {
+      "focus": "Enfócate y Construye.",
+      "createAccount": "Crea tu cuenta",
+      "subtitle": "Comienza a trackear tu trabajo profundo y multiplica tu productividad.",
+      "hasAccount": "¿Ya tienes una cuenta?",
+      "signIn": "Inicia sesión",
+      "nameLabel": "Nombre completo",
+      "namePlaceholder": "Juan Pérez",
+      "emailLabel": "Correo electrónico",
+      "emailPlaceholder": "tu@ejemplo.com",
+      "passwordLabel": "Contraseña",
+      "passwordPlaceholder": "Mín. 8 caracteres",
+      "confirmPasswordLabel": "Confirmar Contraseña",
+      "confirmPasswordPlaceholder": "Repite tu contraseña",
+      "creatingAccount": "Creando cuenta...",
+      "createBtn": "Crear Cuenta",
+      "passwordsDontMatch": "Las contraseñas no coinciden",
+      "passwordShort": "La contraseña debe tener al menos 8 caracteres",
+      "error": "Ocurrió un error. Por favor intenta nuevamente."
+    }
+  },
+  "Dashboard": {
+    "title": "Análisis central",
+    "subtitle": "Tus métricas de productividad en un solo lugar, sin elementos innecesarios.",
+    "sessions": "Sesiones",
+    "productiveHours": "Horas productivas",
+    "avgDistractions": "Distracciones promedio",
+    "quickTip": "Tip rápido",
+    "quickTipText": "Usa la página principal para comenzar tu próxima sesión y reducir las distracciones con un solo clic.",
+    "productiveHoursChart": "Horas Productivas",
+    "timeByObjective": "Tiempo por Objetivo",
+    "noData": "No hay datos aún",
+    "noDataSub": "Inicia una sesión Pomodoro para ver tus analíticas.",
+    "goFocus": "Ir a enfocarse",
+    "tabs": {
+      "charts": "Gráficos",
+      "calendar": "Calendario"
+    },
+    "calendar": {
+      "days": { "mon": "Lun", "tue": "Mar", "wed": "Mié", "thu": "Jue", "fri": "Vie", "sat": "Sáb", "sun": "Dom" },
+      "close": "Cerrar",
+      "empty": "Sin sesiones este dia.",
+      "hours": "Horas",
+      "distractions": "Distracciones",
+      "ses": "ses",
+      "min": "min",
+      "distr": "distr."
+    }
+  },
+  "Forms": {
+    "Objectives": {
+      "newObjective": "Nuevo objetivo",
+      "createTitle": "Crear objetivo",
+      "createSubtitle": "Mantén tu productividad organizada con objetivos claros.",
+      "name": "Nombre",
+      "namePlaceholder": "Ej. Desarrollar MVP de PRODO",
+      "color": "Color",
+      "customColor": "Color personalizado",
+      "creating": "Creando...",
+      "createBtn": "Crear objetivo",
+      "successTitle": "Objetivo creado",
+      "successDesc": "Tu objetivo ahora aparece en la barra lateral y en la página principal.",
+      "errorTitle": "Error al crear objetivo",
+      "errorDesc": "Intenta nuevamente."
+    },
+    "Tasks": {
+      "addPlaceholder": "Agregar nueva tarea...",
+      "adding": "Agregando...",
+      "addBtn": "Agregar",
+      "successTitle": "Tarea creada",
+      "successDetail": "Tu tarea se agregó al objetivo y está lista para enfocar.",
+      "successPlan": "Agregada al plan del dia.",
+      "errorTitle": "Error al crear tarea",
+      "errorDesc": "Intenta nuevamente.",
+      "missingData": "Faltan datos",
+      "missingDataDesc": "Completa el título y selecciona un objetivo.",
+      "createTask": "Crear Tarea",
+      "newTask": "Nueva Tarea",
+      "newTaskSub": "Configura tu próximo ciclo de enfoque.",
+      "close": "Cerrar",
+      "title": "Título",
+      "titlePlaceholder": "Ej. Diseñar flujo de onboarding",
+      "objective": "Objetivo",
+      "cancel": "Cancelar",
+      "start": "Comenzar"
+    }
+  },
+  "Plan": {
+    "emptyTitle": "Sin tareas para hoy",
+    "emptySub": "Usa el boton + para agregar tareas al dia",
+    "completedOf": "{completed} de {total} completadas"
+  },
+  "Jornada": {
+    "longBreakToast": "Descanso largo",
+    "shortBreakToast": "Descanso corto",
+    "completedToast": "Jornada completada!",
+    "nextToast": "Siguiente: {title}",
+    "startedToast": "Jornada iniciada: {title}",
+    "stoppedToast": "Jornada detenida",
+    "pausedDistractionLog": "Pausado (distracción registrada)",
+    "resumedToast": "Reanudado",
+    "startAction": "Comenzar Jornada ({count, plural, =1 {1 tarea} other {# tareas}})",
+    "completedTitle": "¡Jornada Completada!",
+    "completedDesc": "Completaste {pomodoros, plural, =1 {1 pomodoro} other {# pomodoros}} en {tasks, plural, =1 {1 tarea} other {# tareas}}.",
+    "backPlan": "Volver al plan",
+    "breakTitle": "Descanso",
+    "breakLong": "Descansa 15 minutos.",
+    "breakShort": "Descansa 5 minutos.",
+    "upcomingTasks": "Siguientes Tareas",
+    "skipBreak": "Saltar descanso",
+    "taskXofY": "Tarea {current}/{total}",
+    "nextQueue": "A continuación",
+    "deepWork": "Deep Work",
+    "pausedState": "Pausado",
+    "logDistraction": "Registrar Distracción",
+    "pressForDistraction": "Presiona Espacio para registrar",
+    "pauseBtn": "Pausar Sesión",
+    "resumeBtn": "Reanudar Sesión",
+    "taskDoneBtn": "Tarea Completada",
+    "stopBtn": "Detener Jornada"
+  },
+  "Selector": {
+    "Objectives": {
+      "deleted": "Objetivo eliminado",
+      "colorUpdated": "Color actualizado",
+      "emptyTitle": "Sin objetivos aún",
+      "emptySub": "Crea tu primer objetivo macro para comenzar a rastrear tu productividad.",
+      "confirmDelete": "¿Eliminar este objetivo y todas sus tareas?",
+      "deleting": "Eliminando...",
+      "deleteBtn": "Eliminar",
+      "cancelBtn": "Cancelar",
+      "changeColor": "Cambiar color",
+      "deleteObjective": "Eliminar objetivo"
+    },
+    "Tasks": {
+      "notFound": "Objetivo no encontrado",
+      "backToPlan": "Volver al plan",
+      "backToTasks": "Volver a tareas",
+      "backToObjectives": "Volver a objetivos",
+      "activeObjective": "Objetivo activo",
+      "tasks": "Tareas",
+      "progress": "Progreso",
+      "progressText": "{completed} de {total} completadas",
+      "noTasksStatus": "Sin tareas",
+      "emptyTitle": "Aún no hay tareas",
+      "emptySub": "Divide este objetivo en tareas procesables y comienza a enfocarte."
+    }
+  },
+  "Session": {
+    "Indicator": {
+      "activeTitle": "Sesión en curso",
+      "activeSub": "Tu sesión se mantiene activa mientras trabajas.",
+      "activeTask": "Tarea activa",
+      "minutes": "minutos",
+      "returnBtn": "Volver"
+    },
+    "Launcher": {
+      "breakEnded": "Descanso terminado",
+      "readyForNext": "Listo para otra sesión.",
+      "taskCompleted": "¡Tarea completada!",
+      "excellentWork": "Excelente trabajo.",
+      "longBreak": "Descanso largo",
+      "shortBreak": "Descanso corto",
+      "enterZone": "Entra en la zona.",
+      "nextCycleReady": "Tu próximo ciclo de enfoque profundo de 25 minutos está listo. Cierra distracciones.",
+      "deepWorkActivated": "Modo Deep Work activado",
+      "immersiveStarted": "Tu sesión inmersiva ha comenzado.",
+      "startPomodoro": "Iniciar Pomodoro (25m)",
+      "pressSpace": "Presiona Espacio durante la sesión para registrar una distracción",
+      "sessionComplete": "¡Sesión Completada!",
+      "finishedSession": "Terminaste una sesión Pomodoro de {duration} minutos. ¡Buen trabajo manteniéndote enfocado!",
+      "minutesOfFocus": "{duration} minutos de enfoque profundo",
+      "startAnother": "Iniciar Otra Sesión",
+      "endedEarly": "Sesión Terminada Temprano",
+      "noWorries": "No te preocupes -- puedes iniciar una nueva sesión cuando estés listo para volver a enfocarte.",
+      "tryAgain": "Intentar de nuevo"
+    }
+  },
+  "ViewToggle": {
+    "objectives": "Objetivos",
+    "dailyPlan": "Plan del Dia"
   }
 }

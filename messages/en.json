@@ -24,5 +24,203 @@
     "expand": "Expand sidebar",
     "collapse": "Collapse sidebar",
     "dist": "distr."
+  },
+  "Auth": {
+    "login": {
+      "focus": "Focus & Build.",
+      "welcome": "Welcome back",
+      "subtitle": "Sign in to continue with your focus cycles.",
+      "noAccount": "Don't have an account?",
+      "createOne": "Create one",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Enter your password",
+      "signingIn": "Signing in...",
+      "signIn": "Sign In",
+      "invalidCredentials": "Invalid email or password",
+      "error": "An error occurred. Please try again."
+    },
+    "register": {
+      "focus": "Focus & Build.",
+      "createAccount": "Create your account",
+      "subtitle": "Start tracking your deep work and multiply your productivity.",
+      "hasAccount": "Already have an account?",
+      "signIn": "Sign in",
+      "nameLabel": "Full Name",
+      "namePlaceholder": "John Doe",
+      "emailLabel": "Email",
+      "emailPlaceholder": "you@example.com",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "Min. 8 characters",
+      "confirmPasswordLabel": "Confirm Password",
+      "confirmPasswordPlaceholder": "Repeat your password",
+      "creatingAccount": "Creating account...",
+      "createBtn": "Create Account",
+      "passwordsDontMatch": "Passwords do not match",
+      "passwordShort": "Password must be at least 8 characters",
+      "error": "An error occurred. Please try again."
+    }
+  },
+  "Dashboard": {
+    "title": "Central Analytics",
+    "subtitle": "Your productivity metrics in one place, without unnecessary elements.",
+    "sessions": "Sessions",
+    "productiveHours": "Productive hours",
+    "avgDistractions": "Average distractions",
+    "quickTip": "Quick Tip",
+    "quickTipText": "Use the main page to start your next session and reduce distractions with a single click.",
+    "productiveHoursChart": "Productive Hours",
+    "timeByObjective": "Time by Objective",
+    "noData": "No data yet",
+    "noDataSub": "Start a Pomodoro session to see your analytics.",
+    "goFocus": "Go Focus",
+    "tabs": {
+      "charts": "Charts",
+      "calendar": "Calendar"
+    },
+    "calendar": {
+      "days": { "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun" },
+      "close": "Close",
+      "empty": "No sessions on this day.",
+      "hours": "Hours",
+      "distractions": "Distractions",
+      "ses": "ses",
+      "min": "min",
+      "distr": "distr."
+    }
+  },
+  "Forms": {
+    "Objectives": {
+      "newObjective": "New objective",
+      "createTitle": "Create objective",
+      "createSubtitle": "Keep your productivity organized with clear objectives.",
+      "name": "Name",
+      "namePlaceholder": "e.g., Develop PRODO MVP",
+      "color": "Color",
+      "customColor": "Custom color",
+      "creating": "Creating...",
+      "createBtn": "Create objective",
+      "successTitle": "Objective created",
+      "successDesc": "Your objective now appears in the sidebar and main page.",
+      "errorTitle": "Error creating objective",
+      "errorDesc": "Please try again."
+    },
+    "Tasks": {
+      "addPlaceholder": "Add new task...",
+      "adding": "Adding...",
+      "addBtn": "Add",
+      "successTitle": "Task created",
+      "successDetail": "Your task was added to the objective and is ready for focus.",
+      "successPlan": "Added to the daily plan.",
+      "errorTitle": "Error creating task",
+      "errorDesc": "Please try again.",
+      "missingData": "Missing data",
+      "missingDataDesc": "Complete the title and select an objective.",
+      "createTask": "Create Task",
+      "newTask": "New Task",
+      "newTaskSub": "Configure your next focus cycle.",
+      "close": "Close",
+      "title": "Title",
+      "titlePlaceholder": "e.g., Design onboarding flow",
+      "objective": "Objective",
+      "cancel": "Cancel",
+      "start": "Start"
+    }
+  },
+  "Plan": {
+    "emptyTitle": "No tasks for today",
+    "emptySub": "Use the + button to add tasks for the day",
+    "completedOf": "{completed} of {total} completed"
+  },
+  "Jornada": {
+    "longBreakToast": "Long break",
+    "shortBreakToast": "Short break",
+    "completedToast": "Journey completed!",
+    "nextToast": "Next: {title}",
+    "startedToast": "Journey started: {title}",
+    "stoppedToast": "Journey stopped",
+    "pausedDistractionLog": "Paused (distraction logged)",
+    "resumedToast": "Resumed",
+    "startAction": "Start Journey ({count, plural, =1 {1 task} other {# tasks}})",
+    "completedTitle": "Journey Completed!",
+    "completedDesc": "You completed {pomodoros, plural, =1 {1 pomodoro} other {# pomodoros}} across {tasks, plural, =1 {1 task} other {# tasks}}.",
+    "backPlan": "Back to plan",
+    "breakTitle": "Break",
+    "breakLong": "Rest for 15 minutes.",
+    "breakShort": "Rest for 5 minutes.",
+    "upcomingTasks": "Upcoming Tasks",
+    "skipBreak": "Skip break",
+    "taskXofY": "Task {current}/{total}",
+    "nextQueue": "Up next",
+    "deepWork": "Deep Work",
+    "pausedState": "Paused",
+    "logDistraction": "Log Distraction",
+    "pressForDistraction": "Press Space to record",
+    "pauseBtn": "Pause Session",
+    "resumeBtn": "Resume Session",
+    "taskDoneBtn": "Task Completed",
+    "stopBtn": "Stop Journey"
+  },
+  "Selector": {
+    "Objectives": {
+      "deleted": "Objective deleted",
+      "colorUpdated": "Color updated",
+      "emptyTitle": "No objectives yet",
+      "emptySub": "Create your first macro objective to start tracking your productivity.",
+      "confirmDelete": "Delete this objective and all its tasks?",
+      "deleting": "Deleting...",
+      "deleteBtn": "Delete",
+      "cancelBtn": "Cancel",
+      "changeColor": "Change color",
+      "deleteObjective": "Delete objective"
+    },
+    "Tasks": {
+      "notFound": "Objective not found",
+      "backToPlan": "Back to plan",
+      "backToTasks": "Back to tasks",
+      "backToObjectives": "Back to objectives",
+      "activeObjective": "Active objective",
+      "tasks": "Tasks",
+      "progress": "Progress",
+      "progressText": "{completed} of {total} completed",
+      "noTasksStatus": "No tasks",
+      "emptyTitle": "No tasks yet",
+      "emptySub": "Break this objective into actionable tasks and start focusing."
+    }
+  },
+  "Session": {
+    "Indicator": {
+      "activeTitle": "Active session",
+      "activeSub": "Your session remains active while you work.",
+      "activeTask": "Active task",
+      "minutes": "minutes",
+      "returnBtn": "Return"
+    },
+    "Launcher": {
+      "breakEnded": "Break ended",
+      "readyForNext": "Ready for another session.",
+      "taskCompleted": "Task completed!",
+      "excellentWork": "Excellent work.",
+      "longBreak": "Long break",
+      "shortBreak": "Short break",
+      "enterZone": "Enter the zone.",
+      "nextCycleReady": "Your next 25-minute deep focus cycle is ready. Close distractions.",
+      "deepWorkActivated": "Deep Work mode activated",
+      "immersiveStarted": "Your immersive session has begun.",
+      "startPomodoro": "Start Pomodoro (25m)",
+      "pressSpace": "Press Space during the session to record a distraction",
+      "sessionComplete": "Session Complete!",
+      "finishedSession": "You finished a {duration}-minute Pomodoro session. Great work staying focused!",
+      "minutesOfFocus": "{duration} minutes of deep focus",
+      "startAnother": "Start Another Session",
+      "endedEarly": "Session Ended Early",
+      "noWorries": "No worries -- you can start a new session whenever you are ready to refocus.",
+      "tryAgain": "Try Again"
+    }
+  },
+  "ViewToggle": {
+    "objectives": "Objectives",
+    "dailyPlan": "Daily Plan"
   }
 }

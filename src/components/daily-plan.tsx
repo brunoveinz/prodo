@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { completeTask } from '@/actions/tasks'
 import { removeTaskFromPlan, reorderPlanItems } from '@/actions/daily-plan'
 import { Play, CheckCircle2, Circle, CalendarDays, X, GripVertical } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 type PlanItem = {
   id: string
@@ -26,6 +27,7 @@ export default function DailyPlan({ items }: DailyPlanProps) {
   const [dragIdx, setDragIdx] = useState<number | null>(null)
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
   const [localItems, setLocalItems] = useState<PlanItem[] | null>(null)
+  const t = useTranslations('Plan')
 
   const displayItems = localItems ?? items
 
@@ -73,9 +75,9 @@ export default function DailyPlan({ items }: DailyPlanProps) {
     return (
       <div className="flex flex-col items-center justify-center py-16 text-center">
         <CalendarDays className="h-8 w-8 text-muted-foreground/40 mb-3" />
-        <p className="text-sm font-medium text-foreground">Sin tareas para hoy</p>
+        <p className="text-sm font-medium text-foreground">{t('emptyTitle')}</p>
         <p className="text-xs text-muted-foreground mt-1">
-          Usa el boton + para agregar tareas al dia
+          {t('emptySub')}
         </p>
       </div>
     )
@@ -86,7 +88,7 @@ export default function DailyPlan({ items }: DailyPlanProps) {
       {/* Progress */}
       <div className="flex items-center justify-between">
         <p className="text-xs font-medium text-muted-foreground">
-          {completedCount} de {totalCount} completadas
+          {t('completedOf', { completed: completedCount, total: totalCount })}
         </p>
       </div>
       <div className="h-1 w-full rounded-full bg-muted overflow-hidden">

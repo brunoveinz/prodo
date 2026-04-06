@@ -11,6 +11,7 @@ import { useToast } from '@/components/ui/notification'
 import { Target, ChevronRight, Trash2, Palette, X } from 'lucide-react'
 import CreateObjectiveForm from './create-objective-form'
 import { deleteObjective, updateObjectiveColor } from '@/actions/objectives'
+import { useTranslations } from 'next-intl'
 
 const PRESET_COLORS = [
   '#8b5cf6', '#3b82f6', '#10b981', '#f59e0b', '#f43f5e', '#06b6d4',
@@ -31,11 +32,12 @@ export default function ObjectiveSelector({
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
   const toast = useToast()
+  const t = useTranslations('Selector.Objectives')
 
   function handleDelete(objectiveId: string) {
     startTransition(async () => {
       await deleteObjective(objectiveId)
-      toast({ title: 'Objetivo eliminado', variant: 'success' })
+      toast({ title: t('deleted'), variant: 'success' })
       setConfirmDeleteId(null)
       setMenuOpenId(null)
       router.refresh()
@@ -45,7 +47,7 @@ export default function ObjectiveSelector({
   function handleColorChange(objectiveId: string, color: string) {
     startTransition(async () => {
       await updateObjectiveColor(objectiveId, color)
-      toast({ title: 'Color actualizado', variant: 'success' })
+      toast({ title: t('colorUpdated'), variant: 'success' })
       setColorPickerId(null)
       setMenuOpenId(null)
       router.refresh()
@@ -60,10 +62,10 @@ export default function ObjectiveSelector({
             <Target className="h-8 w-8 text-muted-foreground" />
           </div>
           <h3 className="text-lg font-semibold text-foreground">
-            No objectives yet
+            {t('emptyTitle')}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground max-w-sm">
-            Create your first macro objective to start tracking your productivity.
+            {t('emptySub')}
           </p>
         </div>
         <CreateObjectiveForm />
@@ -144,7 +146,7 @@ export default function ObjectiveSelector({
                 <div className="absolute right-0 top-full mt-1 z-30 w-48 rounded-xl border border-border bg-card shadow-lg animate-in fade-in slide-in-from-top-1 duration-150">
                   {showConfirmDelete ? (
                     <div className="p-3 space-y-2">
-                      <p className="text-xs text-muted-foreground">Eliminar este objetivo y todas sus tareas?</p>
+                      <p className="text-xs text-muted-foreground">{t('confirmDelete')}</p>
                       <div className="flex gap-2">
                         <Button
                           onClick={() => handleDelete(objective.id)}
@@ -153,7 +155,7 @@ export default function ObjectiveSelector({
                           variant="destructive"
                           className="flex-1 text-xs h-7"
                         >
-                          {isPending ? 'Eliminando...' : 'Eliminar'}
+                          {isPending ? t('deleting') : t('deleteBtn')}
                         </Button>
                         <Button
                           onClick={() => setConfirmDeleteId(null)}
@@ -161,13 +163,13 @@ export default function ObjectiveSelector({
                           variant="ghost"
                           className="flex-1 text-xs h-7"
                         >
-                          Cancelar
+                          {t('cancelBtn')}
                         </Button>
                       </div>
                     </div>
                   ) : showColorPicker ? (
                     <div className="p-3 space-y-2">
-                      <p className="text-xs text-muted-foreground font-medium">Cambiar color</p>
+                      <p className="text-xs text-muted-foreground font-medium">{t('changeColor')}</p>
                       <div className="flex items-center gap-1.5 flex-wrap">
                         {PRESET_COLORS.map((color) => (
                           <button
@@ -195,7 +197,7 @@ export default function ObjectiveSelector({
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors"
                       >
                         <Palette className="size-3.5" />
-                        Cambiar color
+                        {t('changeColor')}
                       </button>
                       <button
                         onClick={() => setConfirmDeleteId(objective.id)}

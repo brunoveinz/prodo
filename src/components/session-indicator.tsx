@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { Clock, X } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface ActiveSession {
   taskId: string
@@ -16,6 +17,7 @@ const STORAGE_KEY = 'prodo_active_session'
 
 export default function SessionIndicator() {
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null)
+  const t = useTranslations('Session.Indicator')
 
   useEffect(() => {
     const loadSession = () => {
@@ -53,8 +55,8 @@ export default function SessionIndicator() {
             <Clock className="size-4" />
           </div>
           <div>
-            <p className="text-sm font-semibold text-foreground">Sesión en curso</p>
-            <p className="text-xs text-muted-foreground">Tu sesión se mantiene activa mientras trabajas.</p>
+            <p className="text-sm font-semibold text-foreground">{t('activeTitle')}</p>
+            <p className="text-xs text-muted-foreground">{t('activeSub')}</p>
           </div>
         </div>
         <button
@@ -69,14 +71,14 @@ export default function SessionIndicator() {
 
       <div className="mt-4 flex items-center justify-between gap-4 rounded-3xl border border-border bg-muted px-4 py-3">
         <div>
-          <p className="font-semibold text-foreground truncate">{activeSession.taskTitle || 'Tarea activa'}</p>
-          <p className="text-xs text-muted-foreground">{activeSession.durationMinutes} minutos</p>
+          <p className="font-semibold text-foreground truncate">{activeSession.taskTitle || t('activeTask')}</p>
+          <p className="text-xs text-muted-foreground">{activeSession.durationMinutes} {t('minutes')}</p>
         </div>
         <Link
           href={activeSession.route}
           className="rounded-full bg-primary px-4 py-2 text-sm font-semibold text-primary-foreground transition hover:bg-primary/90"
         >
-          Volver
+          {t('returnBtn')}
         </Link>
       </div>
     </div>

@@ -3,9 +3,11 @@ import { redirect } from "next/navigation";
 import Link from "next/link";
 import RegisterForm from "@/components/register-form";
 import { Sparkles } from "lucide-react";
+import { getTranslations } from "next-intl/server";
 
 export default async function RegisterPage() {
   const session = await auth();
+  const t = await getTranslations("Auth.register");
 
   if (session) {
     redirect("/");
@@ -22,25 +24,25 @@ export default async function RegisterPage() {
             </div>
             <span className="text-2xl font-bold tracking-tight text-foreground">PRODO</span>
           </div>
-          <p className="text-sm font-medium text-muted-foreground mt-2">Focus & Build.</p>
+          <p className="text-sm font-medium text-muted-foreground mt-2">{t("focus")}</p>
         </div>
         <h1 className="text-2xl font-bold tracking-tight text-foreground">
-          Crea tu cuenta
+          {t("createAccount")}
         </h1>
         <p className="text-sm text-muted-foreground">
-          Comienza a trackear tu trabajo profundo y multiplica tu productividad.
+          {t("subtitle")}
         </p>
       </div>
 
       <RegisterForm />
 
       <p className="text-center text-sm text-muted-foreground">
-        Already have an account?{" "}
+        {t("hasAccount")}{" "}
         <Link
           href="/login"
           className="font-medium text-primary hover:text-primary/80 transition-colors"
         >
-          Sign in
+          {t("signIn")}
         </Link>
       </p>
     </div>

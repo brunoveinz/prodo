@@ -3,6 +3,7 @@
 import { useRouter } from 'next/navigation'
 import { BarChart3, CalendarDays } from 'lucide-react'
 import PeriodSelector from './period-selector'
+import { useTranslations } from 'next-intl'
 
 interface DashboardTabsProps {
   currentTab: string
@@ -11,6 +12,7 @@ interface DashboardTabsProps {
 
 export default function DashboardTabs({ currentTab, currentPeriod }: DashboardTabsProps) {
   const router = useRouter()
+  const t = useTranslations('Dashboard.tabs')
 
   return (
     <div className="flex items-center gap-4">
@@ -26,7 +28,7 @@ export default function DashboardTabs({ currentTab, currentPeriod }: DashboardTa
           }`}
         >
           <BarChart3 className="size-3.5" />
-          Graficos
+          {t('charts')}
         </button>
         <button
           onClick={() => router.push('/dashboard?tab=calendar')}
@@ -37,7 +39,7 @@ export default function DashboardTabs({ currentTab, currentPeriod }: DashboardTa
           }`}
         >
           <CalendarDays className="size-3.5" />
-          Calendario
+          {t('calendar')}
         </button>
       </div>
     </div>

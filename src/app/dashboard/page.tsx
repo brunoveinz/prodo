@@ -10,6 +10,7 @@ import CalendarView from '@/components/dashboard/calendar-view'
 import DashboardTabs from '@/components/dashboard/dashboard-tabs'
 import { Timer, BarChart3, Clock, Target, Zap, Sparkles } from 'lucide-react'
 import { Card } from '@/components/ui/card'
+import { getTranslations } from 'next-intl/server'
 
 interface DashboardPageProps {
   searchParams: Promise<{
@@ -21,6 +22,7 @@ interface DashboardPageProps {
 
 export default async function DashboardPage({ searchParams }: DashboardPageProps) {
   const session = await auth()
+  const t = await getTranslations('Dashboard')
 
   if (!session) {
     redirect('/login')
@@ -60,9 +62,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             <p className="text-xs font-semibold uppercase tracking-[0.32em] text-muted-foreground">
               PRODO
             </p>
-            <h1 className="text-3xl font-bold text-foreground">Análisis central</h1>
+            <h1 className="text-3xl font-bold text-foreground">{t('title')}</h1>
             <p className="mt-2 text-sm text-muted-foreground">
-              Tus métricas de productividad en un solo lugar, sin elementos innecesarios.
+              {t('subtitle')}
             </p>
           </div>
           <DashboardTabs currentTab={tab} currentPeriod={period} />
@@ -81,7 +83,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{totalSessions}</p>
-              <p className="text-xs text-muted-foreground">Sesiones</p>
+              <p className="text-xs text-muted-foreground">{t('sessions')}</p>
             </div>
           </Card>
           <Card className="p-5 flex items-center gap-4">
@@ -90,7 +92,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{totalHours.toFixed(1)}</p>
-              <p className="text-xs text-muted-foreground">Horas productivas</p>
+              <p className="text-xs text-muted-foreground">{t('productiveHours')}</p>
             </div>
           </Card>
           <Card className="p-5 flex items-center gap-4">
@@ -99,7 +101,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
             <div>
               <p className="text-2xl font-bold text-foreground">{data.avgDistractions.toFixed(1)}</p>
-              <p className="text-xs text-muted-foreground">Distracciones promedio</p>
+              <p className="text-xs text-muted-foreground">{t('avgDistractions')}</p>
             </div>
           </Card>
           <Card className="p-5 rounded-3xl border border-border bg-muted/80">
@@ -108,9 +110,9 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 <Sparkles className="size-5" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-foreground">Tip rápido</p>
+                <p className="text-sm font-semibold text-foreground">{t('quickTip')}</p>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Usa la página principal para comenzar tu próxima sesión y reducir las distracciones con un solo clic.
+                  {t('quickTipText')}
                 </p>
               </div>
             </div>
@@ -129,7 +131,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 <div className="flex items-center gap-2 mb-4">
                   <BarChart3 className="size-4 text-muted-foreground" />
                   <h3 className="text-sm font-medium text-muted-foreground">
-                    Productive Hours
+                    {t('productiveHoursChart')}
                   </h3>
                 </div>
                 <HoursBarChart data={data.dailyHours} />
@@ -142,7 +144,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
                 <div className="flex items-center gap-2 mb-4">
                   <Target className="size-4 text-muted-foreground" />
                   <h3 className="text-sm font-medium text-muted-foreground">
-                    Time by Objective
+                    {t('timeByObjective')}
                   </h3>
                 </div>
                 <ObjectivePieChart data={data.objectiveBreakdown} />
@@ -157,10 +159,10 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
             </div>
             <div className="text-center space-y-1">
               <p className="text-foreground font-medium">
-                No data yet
+                {t('noData')}
               </p>
               <p className="text-sm text-muted-foreground">
-                Start a Pomodoro session to see your analytics.
+                {t('noDataSub')}
               </p>
             </div>
             <Link
@@ -168,7 +170,7 @@ export default async function DashboardPage({ searchParams }: DashboardPageProps
               className="mt-2 inline-flex items-center gap-2 px-5 py-2 bg-primary text-primary-foreground rounded-md text-sm font-medium hover:bg-primary/90 transition-colors"
             >
               <Timer className="size-4" />
-              Go Focus
+              {t('goFocus')}
             </Link>
           </Card>
         )}

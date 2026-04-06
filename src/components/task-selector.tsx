@@ -4,6 +4,7 @@ import { Card } from '@/components/ui/card'
 import { Circle, CheckCircle2, Play, ArrowLeft } from 'lucide-react'
 import CreateTaskForm from './create-task-form'
 import SessionLauncher from './session-launcher'
+import { useTranslations } from 'next-intl'
 
 type UpcomingTask = {
   taskTitle: string
@@ -33,11 +34,12 @@ export default function TaskSelector({
   const selectedTask = selectedTaskId
     ? tasks.find((task) => task.id === selectedTaskId)
     : undefined
+  const t = useTranslations('Selector.Tasks')
 
   if (!objective) {
     return (
       <Card className="p-6 text-center">
-        <p className="text-muted-foreground">Objective not found</p>
+        <p className="text-muted-foreground">{t('notFound')}</p>
       </Card>
     )
   }
@@ -50,7 +52,7 @@ export default function TaskSelector({
           className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
           <ArrowLeft className="h-3.5 w-3.5" />
-          {fromPlan ? 'Volver al plan' : 'Back to tasks'}
+          {fromPlan ? t('backToPlan') : t('backToTasks')}
         </Link>
         <SessionLauncher
           taskId={selectedTaskId}
@@ -71,7 +73,7 @@ export default function TaskSelector({
         className="inline-flex items-center gap-1.5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
       >
         <ArrowLeft className="h-3.5 w-3.5" />
-        Back to objectives
+        {t('backToObjectives')}
       </Link>
 
       <Card className="p-4 border-border/40 bg-card/40 backdrop-blur-md rounded-2xl shadow-sm">
@@ -83,7 +85,7 @@ export default function TaskSelector({
                 style={{ backgroundColor: objective.color }} 
               />
               <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-                Objetivo activo
+                {t('activeObjective')}
               </p>
             </div>
             <h2 className="text-xl font-bold text-foreground">
@@ -105,18 +107,18 @@ export default function TaskSelector({
         <div className="mt-4 grid gap-3 sm:grid-cols-2">
           <div className="rounded-xl border border-border/40 bg-secondary/10 p-3">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Tareas
+              {t('tasks')}
             </p>
             <p className="mt-0.5 text-xl font-bold text-foreground">{tasks.length}</p>
           </div>
           <div className="rounded-xl border border-border/40 bg-secondary/10 p-3 flex flex-col justify-center">
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
-              Progreso
+              {t('progress')}
             </p>
             <p className="mt-1 text-sm font-medium text-foreground">
               {tasks.length > 0
-                ? `${tasks.filter(t => t.isCompleted).length} de ${tasks.length} completadas`
-                : 'Sin tareas'}
+                ? t('progressText', { completed: tasks.filter(ti => ti.isCompleted).length, total: tasks.length })
+                : t('noTasksStatus')}
             </p>
           </div>
         </div>
@@ -128,10 +130,10 @@ export default function TaskSelector({
             <Circle className="h-7 w-7 text-muted-foreground" />
           </div>
           <h3 className="text-base font-semibold text-foreground">
-            No tasks yet
+            {t('emptyTitle')}
           </h3>
           <p className="mt-1 text-sm text-muted-foreground max-w-xs">
-            Break this objective into actionable tasks and start focusing.
+            {t('emptySub')}
           </p>
         </div>
       ) : (

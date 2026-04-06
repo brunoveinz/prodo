@@ -4,6 +4,7 @@ import { useState, useEffect, useTransition } from 'react'
 import { getDayDetail } from '@/actions/sessions'
 import MonthNavigator from './month-navigator'
 import { Loader2, Clock, Zap, Target } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 type CalendarDay = {
   date: string
@@ -27,12 +28,13 @@ interface CalendarViewProps {
   data: CalendarDay[]
 }
 
-const DAY_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom']
+const DAY_KEYS = ['mon', 'tue', 'wed', 'thu', 'fri', 'sat', 'sun']
 
 export default function CalendarView({ year, month, data }: CalendarViewProps) {
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
   const [dayDetail, setDayDetail] = useState<DayDetailItem[] | null>(null)
   const [isPending, startTransition] = useTransition()
+  const t = useTranslations('Dashboard.calendar')
 
   // Build a lookup map: date string -> day data
   const dayMap = new Map<string, CalendarDay>()
@@ -91,9 +93,9 @@ export default function CalendarView({ year, month, data }: CalendarViewProps) {
       <div className="rounded-2xl border border-border/40 bg-card/20 overflow-hidden">
         {/* Day labels */}
         <div className="grid grid-cols-7 border-b border-border/40">
-          {DAY_LABELS.map((label) => (
-            <div key={label} className="py-2 text-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
-              {label}
+          {DAY_KEYS.map((key) => (
+            <div key={key} className="py-2 text-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+              {t(`days.${key}`)}
             </div>
           ))}
         </div>
@@ -144,7 +146,7 @@ export default function CalendarView({ year, month, data }: CalendarViewProps) {
                     </div>
                     {/* Session count */}
                     <p className="text-[10px] text-muted-foreground">
-                      {dayData.sessionCount}s · {dayData.hours.toFixed(1)}h
+                      {dayData.sessionCount}{t('ses')} · {dayData.hours.toFixed(1)}h
                     </p>
                   </div>
                 )}
@@ -169,7 +171,7 @@ export default function CalendarView({ year, month, data }: CalendarViewProps) {
               onClick={() => { setSelectedDate(null); setDayDetail(null) }}
               className="text-xs text-muted-foreground hover:text-foreground transition-colors"
             >
-              Cerrar
+              {t('close')}
             </button>
           </div>
 
@@ -178,7 +180,7 @@ export default function CalendarView({ year, month, data }: CalendarViewProps) {
               <Loader2 className="size-5 animate-spin text-muted-foreground" />
             </div>
           ) : dayDetail.length === 0 ? (
-            <p className="text-sm text-muted-foreground text-center py-4">Sin sesiones este dia.</p>
+            <p className="text-sm text-muted-foreground text-center py-4">{t('empty')}</p>
           ) : (
             <>
               {/* Summary */}
@@ -188,21 +190,21 @@ export default function CalendarView({ year, month, data }: CalendarViewProps) {
                   <p className="text-lg font-bold text-foreground">
                     {dayDetail.reduce((s, d) => s + d.sessionCount, 0)}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">Sesiones</p>
+                  <p className="text-[10px] text-muted-foreground">{t('sessions')}</p>
                 </div>
                 <div className="rounded-xl bg-muted/40 p-3 text-center">
                   <Target className="size-3.5 text-muted-foreground mx-auto mb-1" />
                   <p className="text-lg font-bold text-foreground">
                     {(dayDetail.reduce((s, d) => s + d.totalMinutes, 0) / 60).toFixed(1)}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">Horas</p>
+                  <p className="text-[10px] text-muted-foreground">{t('hours')}</p>
                 </div>
                 <div className="rounded-xl bg-muted/40 p-3 text-center">
                   <Zap className="size-3.5 text-muted-foreground mx-auto mb-1" />
                   <p className="text-lg font-bold text-foreground">
                     {dayDetail.reduce((s, d) => s + d.distractionCount, 0)}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">Distracciones</p>
+                  <p className="text-[10px] text-muted-foreground">{t('distractions')}</p>
                 </div>
               </div>
 
@@ -223,10 +225,10 @@ export default function CalendarView({ year, month, data }: CalendarViewProps) {
                     </div>
                     <div className="text-right shrink-0">
                       <p className="text-xs font-medium text-foreground">
-                        {item.sessionCount} ses · {item.totalMinutes}min
+                        {item.sessionCount} {t('ses')} · {item.totalMinutes}{t('min')}
                       </p>
                       {item.distractionCount > 0 && (
-                        <p className="text-[10px] text-destructive">{item.distractionCount} distr.</p>
+                        <p className="text-[10px] text-destructive">{item.distractionCount} {t('distr')}</p>
                       )}
                     </div>
                   </div>

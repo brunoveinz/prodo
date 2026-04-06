@@ -16,6 +16,7 @@ import { createPomodoroSession } from '@/actions/sessions'
 import { logDistraction } from '@/actions/distractions'
 import { completeTask } from '@/actions/tasks'
 import { reorderPlanItems } from '@/actions/daily-plan'
+import { useTranslations } from 'next-intl'
 
 const FOCUS_MINUTES = 25
 const SHORT_BREAK_MINUTES = 5
@@ -180,6 +181,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
   const toast = useToast()
   const timer = useJornadaTimer()
   const router = useRouter()
+  const t = useTranslations('Jornada')
 
   useEffect(() => {
     setLocalTasks(tasks)
@@ -281,11 +283,11 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
         const newState: JornadaState = { ...state, completedPomodoros: newPomodoros, phase: 'break' }
         setJornadaState(newState)
         timer.start(breakMin * 60 * 1000)
-        toast({ title: isLong ? 'Descanso largo' : 'Descanso corto', variant: 'info' })
+        toast({ title: isLong ? t('longBreakToast') : t('shortBreakToast'), variant: 'info' })
       } else {
         // All tasks done
         setJornadaState({ ...state, completedPomodoros: newPomodoros, phase: 'done' })
-        toast({ title: 'Jornada completada!', variant: 'success' })
+        toast({ title: t('completedToast'), variant: 'success' })
       }
     } else if (state.phase === 'break') {
       // Move to next task
@@ -297,7 +299,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
       playStartTone()
       const nextTask = localTasks[nextIndex]
       if (nextTask) {
-        toast({ title: `Siguiente: ${nextTask.taskTitle}`, variant: 'info' })
+        toast({ title: t('nextToast', { title: nextTask.taskTitle }), variant: 'info' })
       }
     }
   }
@@ -310,14 +312,14 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
     timer.start(FOCUS_MINUTES * 60 * 1000)
     getAudioCtx()
     playStartTone()
-    toast({ title: `Jornada iniciada: ${localTasks[0].taskTitle}`, variant: 'info' })
+    toast({ title: t('startedToast', { title: localTasks[0].taskTitle }), variant: 'info' })
   }
 
   function handleAbort() {
     timer.stop()
     clearJornada()
     setDistractionBuffer([])
-    toast({ title: 'Jornada detenida', variant: 'info' })
+    toast({ title: t('stoppedToast'), variant: 'info' })
     router.push('/?view=plan')
   }
 
@@ -329,14 +331,14 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
 
   const handlePause = useCallback(() => {
     timer.pause()
-    setDistractionBuffer((prev) => [...prev, { type: 'external', note: 'Pausa manual', timestamp: new Date() }])
-    toast({ title: 'Pausado (distraccion registrada)', variant: 'info' })
-  }, [timer, toast])
+    setDistractionBuffer((prev) => [...prev, { type: 'external', note: t('pausedState'), timestamp: new Date() }])
+    toast({ title: t('pausedDistractionLog'), variant: 'info' })
+  }, [timer, toast, t])
 
   const handleResume = useCallback(() => {
     timer.resume()
-    toast({ title: 'Reanudado', variant: 'info' })
-  }, [timer, toast])
+    toast({ title: t('resumedToast'), variant: 'info' })
+  }, [timer, toast, t])
 
   // Spacebar listener
   useEffect(() => {
@@ -394,10 +396,10 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
       setJornadaState({ ...jornadaState, completedPomodoros: newPomodoros, phase: 'break' })
       setDistractionBuffer([])
       timer.start(breakMin * 60 * 1000)
-      toast({ title: isLong ? 'Descanso largo' : 'Descanso corto', variant: 'info' })
+      toast({ title: isLong ? t('longBreakToast') : t('shortBreakToast'), variant: 'info' })
     } else {
       setJornadaState({ ...jornadaState, completedPomodoros: newPomodoros, phase: 'done' })
-      toast({ title: 'Jornada completada!', variant: 'success' })
+      toast({ title: t('completedToast'), variant: 'success' })
     }
   }
 
@@ -446,7 +448,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
         className="w-full h-14 rounded-2xl text-[15px] font-bold gap-3 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 text-white shadow-xl transition-all hover:scale-[1.01]"
       >
         <Rocket className="size-5" />
-        Comenzar Jornada ({localTasks.length} tarea{localTasks.length !== 1 ? 's' : ''})
+        {t('startAction', { count: localTasks.length })}
       </Button>
     )
   }
@@ -477,9 +479,9 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
             <Trophy className="h-9 w-9 text-emerald-500" />
           </div>
           <div className="space-y-2">
-            <h3 className="text-2xl font-bold text-white">Jornada Completada!</h3>
+            <h3 className="text-2xl font-bold text-white">{t('completedTitle')}</h3>
             <p className="text-sm text-white/50">
-              Completaste {jornadaState.completedPomodoros} pomodoro{jornadaState.completedPomodoros !== 1 ? 's' : ''} en {localTasks.length} tarea{localTasks.length !== 1 ? 's' : ''}.
+              {t('completedDesc', { pomodoros: jornadaState.completedPomodoros, tasks: localTasks.length })}
             </p>
           </div>
           <Button
@@ -491,7 +493,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
             size="lg"
             className="gap-2 rounded-xl bg-white text-neutral-900 hover:bg-neutral-100 font-bold"
           >
-            Volver al plan
+            {t('backPlan')}
           </Button>
         </div>
       </div>
@@ -513,19 +515,19 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
             <Coffee className="h-7 w-7 sm:h-9 sm:w-9 text-blue-400" />
           </div>
           <div className="space-y-1 sm:space-y-2 mb-6 sm:mb-8 text-center">
-            <h3 className="text-2xl sm:text-3xl font-bold text-white/90">Descanso</h3>
+            <h3 className="text-2xl sm:text-3xl font-bold text-white/90">{t('breakTitle')}</h3>
             <p className="text-xs sm:text-sm text-blue-200/50">
-              {isLong ? 'Descansa 15 minutos.' : 'Descansa 5 minutos.'}
+              {isLong ? t('breakLong') : t('breakShort')}
             </p>
           </div>
 
           {upcomingTasks.length > 0 && (
             <div className="w-full max-w-xs mx-auto mb-6 space-y-2">
-              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-blue-200/40 mb-2 text-center">Siguientes Tareas</p>
+              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-blue-200/40 mb-2 text-center">{t('upcomingTasks')}</p>
               <div className="space-y-1.5">
-                {upcomingTasks.slice(0, 4).map((t, idx) => (
+                {upcomingTasks.slice(0, 4).map((tItem, idx) => (
                   <div
-                    key={t.taskId}
+                    key={tItem.taskId}
                     draggable
                     onDragStart={() => handleDragStart(idx)}
                     onDragOver={(e) => handleDragOver(e, idx)}
@@ -537,8 +539,8 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
                     <div className="shrink-0 cursor-grab active:cursor-grabbing text-blue-200/30">
                       <GripVertical className="h-4 w-4" />
                     </div>
-                    <div className="w-2 h-2 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: t.objectiveColor }} />
-                    <span className="text-sm font-medium text-blue-100 truncate">{t.taskTitle}</span>
+                    <div className="w-2 h-2 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: tItem.objectiveColor }} />
+                    <span className="text-sm font-medium text-blue-100 truncate">{tItem.taskTitle}</span>
                   </div>
                 ))}
               </div>
@@ -566,7 +568,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
             className="text-xs text-blue-300/40 hover:text-blue-200 hover:bg-blue-500/10 gap-1.5 rounded-lg"
           >
             <SkipForward className="size-3" />
-            Saltar descanso
+            {t('skipBreak')}
           </Button>
         </div>
       </div>
@@ -603,18 +605,18 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
           ))}
         </div>
         <p className="text-[10px] text-white/30 font-medium tracking-wide">
-          Tarea {jornadaState.currentIndex + 1}/{localTasks.length}
+          {t('taskXofY', { current: jornadaState.currentIndex + 1, total: localTasks.length })}
         </p>
       </div>
 
       {/* Upcoming tasks — bottom right */}
       {upcomingTasks.length > 0 && (
         <div className="fixed bottom-6 right-6 z-10 max-w-[220px] space-y-1.5 hidden sm:block pointer-events-none">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2">A continuacion</p>
-          {upcomingTasks.slice(0, 4).map((t, i) => (
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2">{t('nextQueue')}</p>
+          {upcomingTasks.slice(0, 4).map((tItem, i) => (
             <div key={i} className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
-              <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: t.objectiveColor }} />
-              <span className="text-xs text-white/50 truncate">{t.taskTitle}</span>
+              <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: tItem.objectiveColor }} />
+              <span className="text-xs text-white/50 truncate">{tItem.taskTitle}</span>
             </div>
           ))}
         </div>
@@ -647,7 +649,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
                   {currentTask.taskTitle}
                 </span>
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground mt-1">
-                  {timer.isRunning ? 'Deep Work' : timer.isPaused ? 'Pausado' : 'Paused'}
+                  {timer.isRunning ? t('deepWork') : timer.isPaused ? t('pausedState') : t('pausedState')}
                 </span>
               </div>
               {distractionBuffer.length > 0 && (
@@ -664,10 +666,10 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
                 className="w-full h-12 sm:h-14 text-[14px] sm:text-[15px] font-medium gap-2 border border-border/60 bg-secondary/10 hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive transition-all duration-300 active:scale-[0.98] shadow-sm rounded-xl"
               >
                 <AlertTriangle className="size-4" />
-                Log Distraction
+                {t('logDistraction')}
               </Button>
               <p className="text-[10px] font-semibold text-muted-foreground uppercase tracking-widest">
-                Press <kbd className="mx-1.5 px-1.5 py-0.5 rounded bg-secondary border border-border/50 font-mono text-foreground shadow-sm">Space</kbd> to record
+                {t('pressForDistraction')}
               </p>
             </div>
 
@@ -679,7 +681,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
                 className="w-full h-12 text-[14px] font-medium gap-2 border-amber-500/30 bg-amber-500/5 text-amber-400 hover:bg-amber-500/15 hover:border-amber-500/50 transition-all duration-300 active:scale-[0.98] rounded-xl"
               >
                 <Pause className="size-4" />
-                Pausar Sesion
+                {t('pauseBtn')}
               </Button>
             ) : timer.isPaused ? (
               <Button
@@ -688,7 +690,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
                 className="w-full h-12 text-[14px] font-medium gap-2 border-blue-500/30 bg-blue-500/5 text-blue-400 hover:bg-blue-500/15 hover:border-blue-500/50 transition-all duration-300 active:scale-[0.98] rounded-xl animate-pulse"
               >
                 <Play className="size-4" />
-                Reanudar Sesion
+                {t('resumeBtn')}
               </Button>
             ) : null}
 
@@ -699,7 +701,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
               className="w-full h-12 text-[14px] font-medium gap-2 border-emerald-500/30 bg-emerald-500/5 text-emerald-400 hover:bg-emerald-500/15 hover:border-emerald-500/50 transition-all duration-300 active:scale-[0.98] rounded-xl"
             >
               <CheckCircle2 className="size-4" />
-              Tarea Completada
+              {t('taskDoneBtn')}
             </Button>
 
             {/* Abort */}
@@ -709,7 +711,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
               className="text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5 mt-2 rounded-lg"
             >
               <Square className="size-3" />
-              Detener Jornada
+              {t('stopBtn')}
             </Button>
           </div>
         </Card>

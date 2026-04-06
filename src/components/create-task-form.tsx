@@ -7,6 +7,7 @@ import { useToast } from '@/components/ui/notification'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus } from 'lucide-react'
+import { useTranslations } from 'next-intl'
 
 interface CreateTaskFormProps {
   objectiveId: string
@@ -17,6 +18,7 @@ export default function CreateTaskForm({ objectiveId }: CreateTaskFormProps) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const toast = useToast()
+  const t = useTranslations('Forms.Tasks')
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault()
@@ -28,8 +30,8 @@ export default function CreateTaskForm({ objectiveId }: CreateTaskFormProps) {
       await createTask(formData)
 
       toast({
-        title: 'Tarea creada',
-        description: 'Tu tarea se agregó al objetivo y está lista para enfocar.',
+        title: t('successTitle'),
+        description: t('successDetail'),
         variant: 'success',
       })
 
@@ -37,8 +39,8 @@ export default function CreateTaskForm({ objectiveId }: CreateTaskFormProps) {
       router.refresh()
     } catch (error) {
       toast({
-        title: 'Error al crear tarea',
-        description: (error as Error)?.message || 'Intenta nuevamente.',
+        title: t('errorTitle'),
+        description: (error as Error)?.message || t('errorDesc'),
         variant: 'error',
       })
     } finally {
@@ -52,7 +54,7 @@ export default function CreateTaskForm({ objectiveId }: CreateTaskFormProps) {
       <Input
         name="title"
         type="text"
-        placeholder="Agregar nueva tarea..."
+        placeholder={t('addPlaceholder')}
         required
         value={title}
         onChange={(event) => setTitle(event.target.value)}
@@ -60,7 +62,7 @@ export default function CreateTaskForm({ objectiveId }: CreateTaskFormProps) {
       />
       <Button type="submit" size="sm" className="shrink-0 w-full sm:w-auto" disabled={isSubmitting}>
         <Plus className="h-4 w-4 mr-1" />
-        {isSubmitting ? 'Agregando...' : 'Agregar'}
+        {isSubmitting ? t('adding') : t('addBtn')}
       </Button>
     </form>
   )
