@@ -88,6 +88,7 @@ export default async function Page({ searchParams }: PageProps) {
                     taskTitle: i.taskTitle,
                     objectiveId: i.objectiveId,
                     objectiveColor: i.objectiveColor,
+                    planItemId: i.id,
                   }))}
               />
               <DailyPlan items={planItems} />

@@ -8,13 +8,14 @@ import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/notification'
 import {
   Play, Square, Zap, AlertTriangle, Coffee,
-  SkipForward, CheckCircle2, Pause, Rocket, Check, Trophy,
+  SkipForward, CheckCircle2, Pause, Rocket, Check, Trophy, GripVertical
 } from 'lucide-react'
 import DotGrid from './dot-grid'
 import Confetti from './confetti'
 import { createPomodoroSession } from '@/actions/sessions'
 import { logDistraction } from '@/actions/distractions'
 import { completeTask } from '@/actions/tasks'
+import { reorderPlanItems } from '@/actions/daily-plan'
 
 const FOCUS_MINUTES = 25
 const SHORT_BREAK_MINUTES = 5
@@ -35,6 +36,7 @@ type JornadaTask = {
   taskTitle: string
   objectiveId: string
   objectiveColor: string
+  planItemId: string
 }
 
 interface JornadaLauncherProps {
@@ -167,6 +169,10 @@ function useJornadaTimer() {
 }
 
 export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
+  const [localTasks, setLocalTasks] = useState<JornadaTask[]>(tasks)
+  const [dragIdx, setDragIdx] = useState<number | null>(null)
+  const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
+  
   const [jornadaState, setJornadaState] = useState<JornadaState | null>(null)
   const [distractionBuffer, setDistractionBuffer] = useState<{ type: 'internal' | 'external'; note?: string; timestamp: Date }[]>([])
   const [showDistractionFlash, setShowDistractionFlash] = useState(false)
@@ -174,6 +180,10 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
   const toast = useToast()
   const timer = useJornadaTimer()
   const router = useRouter()
+
+  useEffect(() => {
+    setLocalTasks(tasks)
+  }, [tasks])
 
   const jornadaRef = useRef(jornadaState)
   jornadaRef.current = jornadaState
@@ -256,13 +266,13 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
 
     if (state.phase === 'focus') {
       playChime()
-      const currentTask = tasks[state.currentIndex]
+      const currentTask = localTasks[state.currentIndex]
       if (currentTask) {
         await saveSession(currentTask.taskId, FOCUS_MINUTES)
       }
 
       const newPomodoros = state.completedPomodoros + 1
-      const hasMoreTasks = state.currentIndex < tasks.length - 1
+      const hasMoreTasks = state.currentIndex < localTasks.length - 1
 
       if (hasMoreTasks) {
         // Go to break, then next task
@@ -285,7 +295,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
       setDistractionBuffer([])
       timer.start(FOCUS_MINUTES * 60 * 1000)
       playStartTone()
-      const nextTask = tasks[nextIndex]
+      const nextTask = localTasks[nextIndex]
       if (nextTask) {
         toast({ title: `Siguiente: ${nextTask.taskTitle}`, variant: 'info' })
       }
@@ -293,14 +303,14 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
   }
 
   function startJornada() {
-    if (tasks.length === 0) return
+    if (localTasks.length === 0) return
     const state: JornadaState = { currentIndex: 0, completedPomodoros: 0, phase: 'focus' }
     setJornadaState(state)
     setDistractionBuffer([])
     timer.start(FOCUS_MINUTES * 60 * 1000)
     getAudioCtx()
     playStartTone()
-    toast({ title: `Jornada iniciada: ${tasks[0].taskTitle}`, variant: 'info' })
+    toast({ title: `Jornada iniciada: ${localTasks[0].taskTitle}`, variant: 'info' })
   }
 
   function handleAbort() {
@@ -343,7 +353,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
 
   async function markCurrentTaskDone() {
     if (!jornadaState) return
-    const currentTask = tasks[jornadaState.currentIndex]
+    const currentTask = localTasks[jornadaState.currentIndex]
     if (!currentTask) return
 
     // Save partial session
@@ -375,7 +385,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
     setTimeout(() => setShowConfetti(false), 3000)
 
     const newPomodoros = jornadaState.completedPomodoros + 1
-    const hasMore = jornadaState.currentIndex < tasks.length - 1
+    const hasMore = jornadaState.currentIndex < localTasks.length - 1
 
     if (hasMore) {
       const isLong = newPomodoros % LONG_BREAK_EVERY === 0
@@ -391,9 +401,43 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
     }
   }
 
+  function handleDragStart(idx: number) {
+    setDragIdx(idx)
+  }
+
+  function handleDragOver(e: React.DragEvent, idx: number) {
+    e.preventDefault()
+    setDragOverIdx(idx)
+  }
+
+  async function handleDragEnd() {
+    if (!jornadaState || dragIdx === null || dragOverIdx === null || dragIdx === dragOverIdx) {
+      setDragIdx(null)
+      setDragOverIdx(null)
+      return
+    }
+    const reordered = [...localTasks]
+    const absDrag = dragIdx + jornadaState.currentIndex + 1
+    const absDrop = dragOverIdx + jornadaState.currentIndex + 1
+    
+    // Bounds check
+    if (absDrag < localTasks.length && absDrop < localTasks.length) {
+      const [moved] = reordered.splice(absDrag, 1)
+      reordered.splice(absDrop, 0, moved)
+      setLocalTasks(reordered)
+
+      try {
+        await reorderPlanItems(reordered.map((t) => t.planItemId))
+      } catch { /* */ }
+    }
+    
+    setDragIdx(null)
+    setDragOverIdx(null)
+  }
+
   // If no jornada running, show start button
   if (!jornadaState) {
-    if (tasks.length === 0) return null
+    if (localTasks.length === 0) return null
 
     return (
       <Button
@@ -402,13 +446,13 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
         className="w-full h-14 rounded-2xl text-[15px] font-bold gap-3 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 text-white shadow-xl transition-all hover:scale-[1.01]"
       >
         <Rocket className="size-5" />
-        Comenzar Jornada ({tasks.length} tarea{tasks.length !== 1 ? 's' : ''})
+        Comenzar Jornada ({localTasks.length} tarea{localTasks.length !== 1 ? 's' : ''})
       </Button>
     )
   }
 
-  const currentTask = tasks[jornadaState.currentIndex]
-  const upcomingTasks = tasks.slice(jornadaState.currentIndex + 1)
+  const currentTask = localTasks[jornadaState.currentIndex]
+  const upcomingTasks = localTasks.slice(jornadaState.currentIndex + 1)
 
   // Display helpers
   const currentDurationMs = jornadaState.phase === 'break'
@@ -435,7 +479,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
           <div className="space-y-2">
             <h3 className="text-2xl font-bold text-white">Jornada Completada!</h3>
             <p className="text-sm text-white/50">
-              Completaste {jornadaState.completedPomodoros} pomodoro{jornadaState.completedPomodoros !== 1 ? 's' : ''} en {tasks.length} tarea{tasks.length !== 1 ? 's' : ''}.
+              Completaste {jornadaState.completedPomodoros} pomodoro{jornadaState.completedPomodoros !== 1 ? 's' : ''} en {localTasks.length} tarea{localTasks.length !== 1 ? 's' : ''}.
             </p>
           </div>
           <Button
@@ -473,12 +517,33 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
             <p className="text-xs sm:text-sm text-blue-200/50">
               {isLong ? 'Descansa 15 minutos.' : 'Descansa 5 minutos.'}
             </p>
-            {upcomingTasks.length > 0 && (
-              <p className="text-xs text-blue-200/30 mt-2">
-                Siguiente: {tasks[jornadaState.currentIndex + 1]?.taskTitle}
-              </p>
-            )}
           </div>
+
+          {upcomingTasks.length > 0 && (
+            <div className="w-full max-w-xs mx-auto mb-6 space-y-2">
+              <p className="text-[10px] sm:text-xs font-semibold uppercase tracking-widest text-blue-200/40 mb-2 text-center">Siguientes Tareas</p>
+              <div className="space-y-1.5">
+                {upcomingTasks.slice(0, 4).map((t, idx) => (
+                  <div
+                    key={t.taskId}
+                    draggable
+                    onDragStart={() => handleDragStart(idx)}
+                    onDragOver={(e) => handleDragOver(e, idx)}
+                    onDragEnd={handleDragEnd}
+                    className={`flex items-center gap-3 px-3 py-2.5 rounded-xl bg-white/5 border border-white/10 hover:bg-white/10 transition-colors ${
+                      dragIdx === idx ? 'opacity-50' : ''
+                    } ${dragOverIdx === idx && dragIdx !== idx ? 'border-primary' : ''}`}
+                  >
+                    <div className="shrink-0 cursor-grab active:cursor-grabbing text-blue-200/30">
+                      <GripVertical className="h-4 w-4" />
+                    </div>
+                    <div className="w-2 h-2 rounded-full shrink-0 shadow-sm" style={{ backgroundColor: t.objectiveColor }} />
+                    <span className="text-sm font-medium text-blue-100 truncate">{t.taskTitle}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           <div className="relative w-full aspect-square max-w-[220px] sm:max-w-[256px] mx-auto flex items-center justify-center mb-6 sm:mb-8">
             <svg viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`} className="absolute inset-0 w-full h-full -rotate-90">
@@ -526,7 +591,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
       {/* Top: progress indicators */}
       <div className="absolute top-6 left-6 z-10 flex flex-col gap-1.5">
         <div className="flex items-center gap-1.5">
-          {tasks.map((_, i) => (
+          {localTasks.map((_, i) => (
             <div
               key={i}
               className={`h-2 w-2 rounded-full transition-all ${
@@ -538,7 +603,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
           ))}
         </div>
         <p className="text-[10px] text-white/30 font-medium tracking-wide">
-          Tarea {jornadaState.currentIndex + 1}/{tasks.length}
+          Tarea {jornadaState.currentIndex + 1}/{localTasks.length}
         </p>
       </div>
 
