@@ -13,6 +13,8 @@ import ViewToggle from '@/components/view-toggle'
 import GuestTimer from '@/components/guest-timer'
 import { Card } from '@/components/ui/card'
 import { Target } from 'lucide-react'
+import { getTranslations } from 'next-intl/server'
+import LanguageSwitcher from '@/components/language-switcher'
 
 interface PageProps {
   searchParams: Promise<{
@@ -26,6 +28,7 @@ interface PageProps {
 
 export default async function Page({ searchParams }: PageProps) {
   const session = await auth()
+  const t = await getTranslations('Workspace')
 
   // --- Unauthenticated: Landing with guest deep work ---
   if (!session) {
@@ -55,13 +58,13 @@ export default async function Page({ searchParams }: PageProps) {
           <div>
             <div className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded border border-border/40 bg-secondary/10 text-muted-foreground text-[10px] font-medium uppercase tracking-wider mb-2">
               <Target className="size-3" />
-              <span>Workspace</span>
+              <span>{t('badge')}</span>
             </div>
             <h1 className="text-2xl font-bold tracking-tight text-foreground mb-1">
-              Focus & Build
+              {t('title')}
             </h1>
             <p className="text-sm text-muted-foreground/80 max-w-sm">
-              Selecciona un objetivo y entra en la zona.
+              {t('subtitle')}
             </p>
           </div>
           {!selectedObjectiveId && objectives.length > 0 && (
@@ -99,7 +102,7 @@ export default async function Page({ searchParams }: PageProps) {
             <div className="space-y-6">
               <div className="flex items-center gap-2">
                 <Target className="h-4 w-4 text-muted-foreground/60" />
-                <h2 className="text-sm font-semibold tracking-wide text-foreground uppercase opacity-80">Your Objectives</h2>
+                <h2 className="text-sm font-semibold tracking-wide text-foreground uppercase opacity-80">{t('yourObjectives')}</h2>
               </div>
               <ObjectiveSelector objectives={objectives} selectedId={selectedObjectiveId} />
             </div>
@@ -128,10 +131,10 @@ export default async function Page({ searchParams }: PageProps) {
             <Card className="p-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm text-muted-foreground">
-                  {objectives.length} objective{objectives.length !== 1 ? 's' : ''} created
+                  {t('objectivesCreated', { count: objectives.length })}
                 </p>
                 <Link href="/dashboard" className="text-sm font-medium text-primary hover:underline">
-                  View analytics →
+                  {t('viewAnalytics')}
                 </Link>
               </div>
             </Card>
@@ -142,18 +145,22 @@ export default async function Page({ searchParams }: PageProps) {
   )
 }
 
-function LandingPage() {
+async function LandingPage() {
+  const t = await getTranslations('Landing')
   return (
     <div className="relative min-h-screen flex flex-col bg-background text-foreground">
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4">
         <span className="text-sm font-bold tracking-tight text-foreground">PRODO</span>
-        <Link
-          href="/login"
-          className="rounded-lg bg-white px-4 py-1.5 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-200"
-        >
-          Iniciar sesion
-        </Link>
+        <div className="flex items-center gap-4">
+          <LanguageSwitcher />
+          <Link
+            href="/login"
+            className="rounded-lg bg-white px-4 py-1.5 text-sm font-semibold text-neutral-900 transition hover:bg-neutral-200"
+          >
+            {t('login')}
+          </Link>
+        </div>
       </header>
 
       {/* Content */}
@@ -165,9 +172,9 @@ function LandingPage() {
       <footer className="pb-6 text-center">
         <p className="text-xs text-muted-foreground/40">
           <Link href="/register" className="underline underline-offset-2 hover:text-muted-foreground/60 transition">
-            Crea una cuenta
+            {t('createAccount')}
           </Link>{' '}
-          para guardar tus sesiones y ver tus metricas.
+          {t('saveSessions')}
         </p>
       </footer>
     </div>

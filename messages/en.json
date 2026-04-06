@@ -1,0 +1,28 @@
+{
+  "Landing": {
+    "login": "Login",
+    "createAccount": "Create an account",
+    "saveSessions": " to save your sessions and view your metrics."
+  },
+  "Workspace": {
+    "badge": "Workspace",
+    "title": "Focus & Build",
+    "subtitle": "Select an objective and enter the zone.",
+    "yourObjectives": "Your Objectives",
+    "objectivesCreated": "{count, plural, =0 {0 objectives created} =1 {1 objective created} other {# objectives created}}",
+    "viewAnalytics": "View analytics →"
+  },
+  "Sidebar": {
+    "focus": "Focus",
+    "analytics": "Analytics",
+    "shortcuts": "Shortcuts",
+    "createTask": "Create task",
+    "logout": "Logout",
+    "logoutConfirmTitle": "Logout",
+    "logoutConfirmText": "Are you sure you want to exit PRODO? Your current session will remain available in the log.",
+    "cancel": "Cancel",
+    "expand": "Expand sidebar",
+    "collapse": "Collapse sidebar",
+    "dist": "distr."
+  }
+}

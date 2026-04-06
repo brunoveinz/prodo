@@ -1,0 +1,28 @@
+{
+  "Landing": {
+    "login": "Iniciar sesión",
+    "createAccount": "Crea una cuenta",
+    "saveSessions": " para guardar tus sesiones y ver tus métricas."
+  },
+  "Workspace": {
+    "badge": "Espacio de trabajo",
+    "title": "Focus & Build",
+    "subtitle": "Selecciona un objetivo y entra en la zona.",
+    "yourObjectives": "Tus Objetivos",
+    "objectivesCreated": "{count, plural, =0 {0 objetivos creados} =1 {1 objetivo creado} other {# objetivos creados}}",
+    "viewAnalytics": "Ver analíticas →"
+  },
+  "Sidebar": {
+    "focus": "Enfoque",
+    "analytics": "Análisis",
+    "shortcuts": "Atajos",
+    "createTask": "Crear tarea",
+    "logout": "Cerrar sesión",
+    "logoutConfirmTitle": "Cerrar sesión",
+    "logoutConfirmText": "Seguro que quieres salir de PRODO? Tu sesión actual se mantendrá disponible en el registro.",
+    "cancel": "Cancelar",
+    "expand": "Expandir barra",
+    "collapse": "Contraer barra",
+    "dist": "distr."
+  }
+}
