@@ -762,28 +762,28 @@ export default function GuestTimer() {
     return (
       <div className="w-full max-w-md mx-auto flex flex-col items-center gap-8 text-center">
         <div className="flex h-20 w-20 items-center justify-center rounded-3xl bg-emerald-500/10 ring-1 ring-emerald-500/20"><Trophy className="h-9 w-9 text-emerald-500" /></div>
-        <div className="space-y-2"><h3 className="text-2xl font-bold text-foreground">Dia completado</h3><p className="text-sm text-muted-foreground">Asi te fue hoy.</p></div>
+        <div className="space-y-2"><h3 className="text-2xl font-bold text-foreground">{t('phases.allDone.dayCompleted')}</h3><p className="text-sm text-muted-foreground">{t('phases.allDone.howItWent')}</p></div>
         <div className="grid grid-cols-3 gap-3 w-full">
-          <div className="rounded-xl border border-border/40 bg-secondary/10 p-4 space-y-1"><p className="text-2xl font-bold text-foreground">{completedTasks.length}</p><p className="text-[11px] text-muted-foreground font-medium">Tareas</p></div>
-          <div className="rounded-xl border border-border/40 bg-secondary/10 p-4 space-y-1"><p className="text-2xl font-bold text-foreground">{totalSessions}</p><p className="text-[11px] text-muted-foreground font-medium">Pomodoros</p></div>
-          <div className="rounded-xl border border-border/40 bg-secondary/10 p-4 space-y-1"><p className="text-2xl font-bold text-foreground">{totalMinDisplay}<span className="text-sm font-normal text-muted-foreground">m</span> {totalSecDisplay}<span className="text-sm font-normal text-muted-foreground">s</span></p><p className="text-[11px] text-muted-foreground font-medium">Enfoque</p></div>
+          <div className="rounded-xl border border-border/40 bg-secondary/10 p-4 space-y-1"><p className="text-2xl font-bold text-foreground">{completedTasks.length}</p><p className="text-[11px] text-muted-foreground font-medium">{t('phases.allDone.tasksStat')}</p></div>
+          <div className="rounded-xl border border-border/40 bg-secondary/10 p-4 space-y-1"><p className="text-2xl font-bold text-foreground">{totalSessions}</p><p className="text-[11px] text-muted-foreground font-medium">{t('phases.allDone.pomodorosStat')}</p></div>
+          <div className="rounded-xl border border-border/40 bg-secondary/10 p-4 space-y-1"><p className="text-2xl font-bold text-foreground">{totalMinDisplay}<span className="text-sm font-normal text-muted-foreground">m</span> {totalSecDisplay}<span className="text-sm font-normal text-muted-foreground">s</span></p><p className="text-[11px] text-muted-foreground font-medium">{t('phases.allDone.focusStat')}</p></div>
         </div>
-        <div className="w-full rounded-xl border border-border/40 bg-secondary/10 px-4 py-3 flex items-center justify-between"><span className="text-sm text-muted-foreground">Distracciones promedio</span><span className="text-lg font-bold text-foreground">{avgDist}</span></div>
+        <div className="w-full rounded-xl border border-border/40 bg-secondary/10 px-4 py-3 flex items-center justify-between"><span className="text-sm text-muted-foreground">{t('phases.allDone.avgDistractions')}</span><span className="text-lg font-bold text-foreground">{avgDist}</span></div>
         <div className="w-full space-y-2 text-left">
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Resumen</p>
-          {guestState.tasks.map((t) => (
-            <div key={t.id} className="flex items-center justify-between rounded-lg px-3 py-2" style={{ borderLeft: `3px solid ${t.color}`, backgroundColor: 'rgba(255,255,255,0.02)' }}>
-              <span className="text-sm text-foreground truncate flex-1">{t.title}</span>
+          <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">{t('phases.allDone.summary')}</p>
+          {guestState.tasks.map((task) => (
+            <div key={task.id} className="flex items-center justify-between rounded-lg px-3 py-2" style={{ borderLeft: `3px solid ${task.color}`, backgroundColor: 'rgba(255,255,255,0.02)' }}>
+              <span className="text-sm text-foreground truncate flex-1">{task.title}</span>
               <div className="flex items-center gap-3 text-xs text-muted-foreground shrink-0 ml-3">
-                {t.pomodorosCompleted > 0 && <span>{t.pomodorosCompleted}x 25m</span>}
-                {t.completed && <Check className="size-3 text-emerald-500" />}
-                {t.totalDistractions > 0 && <span className="text-destructive/70">{t.totalDistractions} dist.</span>}
+                {task.pomodorosCompleted > 0 && <span>{task.pomodorosCompleted}x 25m</span>}
+                {task.completed && <Check className="size-3 text-emerald-500" />}
+                {task.totalDistractions > 0 && <span className="text-destructive/70">{task.totalDistractions} {t('phases.allDone.distrAbbr')}</span>}
               </div>
             </div>
           ))}
         </div>
-        <p className="text-xs text-muted-foreground/50">Crea una cuenta para guardar tu historial.</p>
-        <Button onClick={handleResetAll} variant="outline" size="lg" className="gap-2 rounded-xl"><RotateCcw className="size-4" />Nuevo dia</Button>
+        <p className="text-xs text-muted-foreground/50">{t('phases.allDone.createAccount')}</p>
+        <Button onClick={handleResetAll} variant="outline" size="lg" className="gap-2 rounded-xl"><RotateCcw className="size-4" />{t('phases.allDone.newDay')}</Button>
       </div>
     )
   }
@@ -793,9 +793,9 @@ export default function GuestTimer() {
     return (
       <div className="w-full max-w-lg mx-auto flex flex-col items-center gap-8">
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/20"><Trophy className="h-7 w-7 text-emerald-500" /></div>
-        <div className="text-center space-y-2"><h3 className="text-2xl font-bold text-foreground">Todas las tareas completadas</h3><p className="text-sm text-muted-foreground">Completaste {completedTasks.length} tarea{completedTasks.length !== 1 ? 's' : ''}.</p></div>
-        <Button onClick={handleFinishDay} size="lg" className="gap-2 rounded-xl bg-white text-neutral-900 hover:bg-neutral-100 font-bold"><Trophy className="size-4" />Ver resumen del dia</Button>
-        <Button onClick={handleResetAll} variant="ghost" size="sm" className="text-xs text-muted-foreground">Reiniciar todo</Button>
+        <div className="text-center space-y-2"><h3 className="text-2xl font-bold text-foreground">{t('phases.planning.allCompletedTitle')}</h3><p className="text-sm text-muted-foreground">{t('phases.planning.completedCount', { count: completedTasks.length })}</p></div>
+        <Button onClick={handleFinishDay} size="lg" className="gap-2 rounded-xl bg-white text-neutral-900 hover:bg-neutral-100 font-bold"><Trophy className="size-4" />{t('phases.planning.viewSummary')}</Button>
+        <Button onClick={handleResetAll} variant="ghost" size="sm" className="text-xs text-muted-foreground">{t('phases.planning.resetAll')}</Button>
       </div>
     )
   }
@@ -805,8 +805,8 @@ export default function GuestTimer() {
   return (
     <div className="w-full max-w-lg mx-auto flex flex-col gap-8">
       <div className="text-center space-y-3">
-        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">Planifica tu dia</h2>
-        <p className="text-[15px] font-medium text-muted-foreground">Agrega tus tareas y entra en la zona.</p>
+        <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-foreground">{t('phases.planning.planYourDay')}</h2>
+        <p className="text-[15px] font-medium text-muted-foreground">{t('phases.planning.addTasksDesc')}</p>
       </div>
 
       <Card className="rounded-2xl border border-neutral-700/60 bg-neutral-900 p-5 sm:p-6 space-y-4">
@@ -818,7 +818,7 @@ export default function GuestTimer() {
               type="text"
               value={newTaskTitle}
               onChange={(e) => setNewTaskTitle(e.target.value)}
-              placeholder="Nueva tarea..."
+              placeholder={t('phases.planning.newTaskPlaceholder')}
               className="flex-1 rounded-lg border border-neutral-600 bg-neutral-800 px-4 py-2.5 text-sm text-white placeholder:text-neutral-500 outline-none focus:border-neutral-400 transition"
             />
             <Button type="submit" size="lg" disabled={!newTaskTitle.trim()} className="rounded-lg px-4 bg-white text-neutral-900 hover:bg-neutral-200 disabled:opacity-30"><Plus className="size-5" /></Button>
@@ -832,7 +832,7 @@ export default function GuestTimer() {
 
             {/* Color picker */}
             <div className="space-y-1.5">
-              <p className="text-[11px] text-neutral-500 font-medium">Color</p>
+              <p className="text-[11px] text-neutral-500 font-medium">{t('phases.planning.color')}</p>
               <div className="flex gap-2">
                 {COLORS.map((c) => (
                   <button
@@ -846,7 +846,7 @@ export default function GuestTimer() {
 
             {/* Cycle picker */}
             <div className="space-y-1.5">
-              <p className="text-[11px] text-neutral-500 font-medium">Ciclos de pomodoro</p>
+              <p className="text-[11px] text-neutral-500 font-medium">{t('phases.planning.pomodoroCycles')}</p>
               <div className="flex gap-2">
                 {[1, 2, 3, 4].map((n) => (
                   <button
@@ -863,7 +863,7 @@ export default function GuestTimer() {
               </div>
             </div>
 
-            <Button onClick={submitNewTask} className="w-full rounded-lg bg-white text-neutral-900 hover:bg-neutral-200 font-semibold gap-2"><Plus className="size-4" />Agregar tarea</Button>
+            <Button onClick={submitNewTask} className="w-full rounded-lg bg-white text-neutral-900 hover:bg-neutral-200 font-semibold gap-2"><Plus className="size-4" />{t('phases.planning.addTask')}</Button>
           </div>
         )}
 
@@ -923,7 +923,7 @@ export default function GuestTimer() {
             ))}
           </div>
         ) : (
-          <div className="text-center py-6"><p className="text-sm text-neutral-500">Escribe tu primera tarea para comenzar.</p></div>
+          <div className="text-center py-6"><p className="text-sm text-neutral-500">{t('phases.planning.writeFirstTask')}</p></div>
         )}
 
         {/* Stats */}
@@ -931,9 +931,9 @@ export default function GuestTimer() {
           <>
             <div className="border-t border-neutral-700/60" />
             <div className="flex items-center justify-center gap-6 text-xs text-neutral-500">
-              <span className="flex items-center gap-1.5"><CircleDot className="size-3" />{totalSessions} pomodoro{totalSessions !== 1 ? 's' : ''}</span>
+              <span className="flex items-center gap-1.5"><CircleDot className="size-3" />{totalSessions} {t('phases.planning.pomodoroUnit', { count: totalSessions })}</span>
               <span>{totalMinDisplay}m {totalSecDisplay}s</span>
-              {totalDistractions > 0 && <span>{totalDistractions} dist.</span>}
+              {totalDistractions > 0 && <span>{totalDistractions} {t('phases.planning.distrAbbr')}</span>}
             </div>
           </>
         )}
@@ -943,14 +943,14 @@ export default function GuestTimer() {
       {incompleteTasks.length > 0 && (
         <div className="flex flex-col items-center gap-3">
           <Button onClick={startJornada} size="lg" className="w-full max-w-xs h-14 rounded-2xl bg-white text-neutral-900 hover:bg-neutral-200 font-bold text-[15px] gap-3 shadow-xl transition-all hover:scale-[1.02]">
-            <Rocket className="size-5" />Comenzar jornada
+            <Rocket className="size-5" />{t('phases.planning.startJornada')}
           </Button>
-          <p className="text-xs text-neutral-600">{incompleteTasks.length} tarea{incompleteTasks.length !== 1 ? 's' : ''} · {totalPlannedMin}m planificados</p>
+          <p className="text-xs text-neutral-600">{t('phases.planning.plannedSummary', { count: incompleteTasks.length, minutes: totalPlannedMin })}</p>
         </div>
       )}
 
       <p className="text-xs text-neutral-600 text-center">
-        Presiona <kbd className="inline-flex items-center rounded border border-neutral-700 bg-neutral-800 px-1.5 py-0.5 text-[10px] font-mono font-bold text-neutral-400">Espacio</kbd> durante una sesion para registrar distracciones
+        {t('phases.planning.pressSpaceRecord')} <kbd className="inline-flex items-center rounded border border-neutral-700 bg-neutral-800 px-1.5 py-0.5 text-[10px] font-mono font-bold text-neutral-400">Space</kbd> {t('phases.planning.pressSpaceRecord2')}
       </p>
     </div>
   )
