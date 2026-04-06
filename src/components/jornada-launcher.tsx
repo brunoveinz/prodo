@@ -374,16 +374,19 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
     setShowConfetti(true)
     setTimeout(() => setShowConfetti(false), 3000)
 
+    const newPomodoros = jornadaState.completedPomodoros + 1
     const hasMore = jornadaState.currentIndex < tasks.length - 1
+
     if (hasMore) {
-      const nextIndex = jornadaState.currentIndex + 1
-      setJornadaState({ ...jornadaState, currentIndex: nextIndex, phase: 'focus' })
+      const isLong = newPomodoros % LONG_BREAK_EVERY === 0
+      const breakMin = isLong ? LONG_BREAK_MINUTES : SHORT_BREAK_MINUTES
+      
+      setJornadaState({ ...jornadaState, completedPomodoros: newPomodoros, phase: 'break' })
       setDistractionBuffer([])
-      timer.start(FOCUS_MINUTES * 60 * 1000)
-      playStartTone()
-      toast({ title: `Siguiente: ${tasks[nextIndex].taskTitle}`, variant: 'info' })
+      timer.start(breakMin * 60 * 1000)
+      toast({ title: isLong ? 'Descanso largo' : 'Descanso corto', variant: 'info' })
     } else {
-      setJornadaState({ ...jornadaState, phase: 'done' })
+      setJornadaState({ ...jornadaState, completedPomodoros: newPomodoros, phase: 'done' })
       toast({ title: 'Jornada completada!', variant: 'success' })
     }
   }

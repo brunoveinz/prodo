@@ -119,20 +119,19 @@ export default function SessionLauncher({
       variant: 'success',
     })
 
-    // After confetti, navigate to next task or back to plan
+    // After confetti, start a break
     setTimeout(() => {
       clearActiveSession()
       // Stop the timer localStorage
       localStorage.removeItem('focustracker_session_start')
       localStorage.removeItem('focustracker_duration_ms')
 
-      if (upcomingTasks.length > 0) {
-        // There's no direct way to get the next task's IDs from upcomingTasks
-        // Go back to plan so user can pick next
-        router.push('/?view=plan')
-      } else {
-        router.push('/?view=plan')
-      }
+      const isLongBreakNext = (completedPomodoros + 1) > 0 && (completedPomodoros + 1) % LONG_BREAK_EVERY === 0
+
+      setCompletedPomodoros((c) => c + 1)
+      setSessionState('break')
+      startBreakTimer()
+      toast({ title: isLongBreakNext ? 'Descanso largo' : 'Descanso corto', variant: 'info' })
     }, 2000)
   }
 
