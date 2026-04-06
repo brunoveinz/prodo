@@ -11,6 +11,7 @@ import {
   GripVertical, Rocket,
 } from 'lucide-react'
 import DotGrid from './dot-grid'
+import { useTranslations } from 'next-intl'
 
 // ===================== Types =====================
 
@@ -278,6 +279,7 @@ export default function GuestTimer() {
   const inputRef = useRef<HTMLInputElement>(null)
   const toast = useToast()
   const timer = useTimer()
+  const t = useTranslations('GuestTimer')
 
   // ---- Phase completion detection ----
   const phaseRef = useRef(phase)
@@ -311,7 +313,7 @@ export default function GuestTimer() {
         setCycleState(next); writeCycleState(next)
         setPhase('break')
         timer.start(breakMin * 60 * 1000)
-        toast({ title: isLong ? 'Descanso largo' : 'Descanso corto', variant: 'info' })
+        toast({ title: isLong ? t('toasts.longBreak') : t('toasts.shortBreak'), variant: 'info' })
       } else {
         // All cycles for this task done
         handleTaskCyclesDone()
@@ -323,7 +325,7 @@ export default function GuestTimer() {
       setDistractionCount(0)
       setPhase('focus')
       timer.start(FOCUS_MINUTES * 60 * 1000)
-      toast({ title: `Ciclo ${next.currentCycle} de ${next.totalCycles}`, variant: 'info' })
+      toast({ title: t('toasts.cycleXofY', { current: next.currentCycle, total: next.totalCycles }), variant: 'info' })
     }
   }
 
@@ -348,17 +350,17 @@ export default function GuestTimer() {
         setDistractionCount(0)
         setPhase('focus')
         timer.start(FOCUS_MINUTES * 60 * 1000)
-        toast({ title: `Siguiente: ${nextTask.title}`, variant: 'info' })
+        toast({ title: t('toasts.nextTask', { title: nextTask.title }), variant: 'info' })
       } else {
         // All tasks done
         clearTimerStorage()
         setGuestState((prev) => ({ ...prev, activeTaskId: null, jornadaMode: false }))
         setPhase('all-done')
-        toast({ title: 'Jornada completada', variant: 'success' })
+        toast({ title: t('toasts.jornadaCompleted'), variant: 'success' })
       }
     } else {
       setPhase('session-done')
-      toast({ title: 'Ciclos completados', variant: 'success' })
+      toast({ title: t('toasts.cyclesCompleted'), variant: 'success' })
     }
   }
 
@@ -419,9 +421,9 @@ export default function GuestTimer() {
   const handleAddDistraction = useCallback(() => {
     setDistractionCount((c) => c + 1)
     setShowDistractionFlash(true)
-    toast({ title: 'Distraccion registrada', variant: 'info' })
+    toast({ title: t('toasts.distractionLogged'), variant: 'info' })
     setTimeout(() => setShowDistractionFlash(false), 300)
-  }, [toast])
+  }, [toast, t])
 
   useEffect(() => {
     if (phase !== 'focus' || !timer.isRunning) return
@@ -485,14 +487,14 @@ export default function GuestTimer() {
     setDistractionCount(0); setPhase('focus')
     timer.start(FOCUS_MINUTES * 60 * 1000)
     getAudioCtx(); playStartTone()
-    toast({ title: `Jornada iniciada: ${first.title}`, variant: 'info' })
+    toast({ title: t('toasts.jornadaStarted', { title: first.title }), variant: 'info' })
   }
 
   function handleAbort() {
     timer.stop(); clearTimerStorage()
     setGuestState((prev) => ({ ...prev, activeTaskId: null, jornadaMode: false }))
     setDistractionCount(0); setPhase('planning')
-    toast({ title: 'Sesion detenida', variant: 'info' })
+    toast({ title: t('toasts.sessionAborted'), variant: 'info' })
   }
 
   function handleBackToPlanning() {
@@ -538,10 +540,10 @@ export default function GuestTimer() {
         setDistractionCount(0); setPhase('focus')
         timer.start(FOCUS_MINUTES * 60 * 1000)
         playStartTone()
-        toast({ title: `Siguiente: ${nextTask.title}`, variant: 'info' })
+        toast({ title: t('toasts.nextTask', { title: nextTask.title }), variant: 'info' })
       } else {
         setPhase('all-done')
-        toast({ title: 'Jornada completada', variant: 'success' })
+        toast({ title: t('toasts.jornadaCompleted'), variant: 'success' })
       }
     } else {
       setGuestState((prev) => {
@@ -558,7 +560,7 @@ export default function GuestTimer() {
         }
       })
       setDistractionCount(0); setPhase('planning')
-      toast({ title: 'Tarea completada', variant: 'success' })
+      toast({ title: t('toasts.taskCompleted'), variant: 'success' })
     }
   }
 
@@ -568,7 +570,7 @@ export default function GuestTimer() {
     setCycleState(next); writeCycleState(next)
     setDistractionCount(0); setPhase('focus')
     timer.start(FOCUS_MINUTES * 60 * 1000)
-    toast({ title: `Ciclo ${next.currentCycle} de ${next.totalCycles}`, variant: 'info' })
+    toast({ title: t('toasts.cycleXofY', { current: next.currentCycle, total: next.totalCycles }), variant: 'info' })
     playStartTone()
   }
 
@@ -606,7 +608,7 @@ export default function GuestTimer() {
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-secondary/30 ring-1 ring-border/50 shadow-inner">
           <Clock className="h-7 w-7 text-white/80 animate-pulse" style={{ animationDuration: '3s' }} />
         </div>
-        <h2 className="text-3xl font-extrabold tracking-tight text-foreground">Planifica tu dia</h2>
+        <h2 className="text-3xl font-extrabold tracking-tight text-foreground">{t('phases.loading')}</h2>
       </div>
     )
   }
@@ -631,7 +633,7 @@ export default function GuestTimer() {
                   <div key={i} className={`h-2 w-2 rounded-full transition-all ${i < cycleState.currentCycle - 1 ? 'bg-emerald-500' : i === cycleState.currentCycle - 1 ? 'bg-white shadow-[0_0_6px_rgba(255,255,255,0.5)]' : 'bg-white/20'}`} />
                 ))}
               </div>
-              <p className="text-[10px] text-white/30 font-medium tracking-wide">Ciclo {cycleState.currentCycle}/{cycleState.totalCycles}</p>
+              <p className="text-[10px] text-white/30 font-medium tracking-wide">{t('phases.focus.cycleProgress', { current: cycleState.currentCycle, total: cycleState.totalCycles })}</p>
             </div>
             <LiveClock className="pointer-events-auto" />
           </div>
@@ -648,7 +650,7 @@ export default function GuestTimer() {
                   <div className="absolute inset-0 flex flex-col items-center justify-center max-w-[85%] mx-auto text-center py-4">
                     <span className="text-5xl sm:text-6xl font-mono font-medium tracking-tight text-foreground tabular-nums">{displayMin}:{displaySec}</span>
                     <span className="text-xs sm:text-sm font-semibold text-foreground/80 mt-1 sm:mt-3 line-clamp-2 px-2">{activeTask.title}</span>
-                    <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground mt-1">Deep Work</span>
+                    <span className="text-[9px] sm:text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground mt-1">{t('phases.focus.deepWork')}</span>
                   </div>
                   {distractionCount > 0 && (
                     <Badge variant="secondary" className="absolute -top-1 sm:-top-2 right-2 sm:right-4 gap-1 px-2.5 py-1 text-xs sm:text-sm font-semibold shadow-md bg-destructive text-white"><Zap className="size-3 sm:size-3.5" />{distractionCount}</Badge>
@@ -656,11 +658,11 @@ export default function GuestTimer() {
                 </div>
                 
                 <div className="w-full flex flex-col items-center gap-3 sm:gap-4 mt-2 sm:mb-2">
-                  <Button onClick={handleAddDistraction} variant="outline" size="lg" className="w-full h-12 sm:h-14 text-[14px] sm:text-[15px] font-medium gap-2 border border-border/60 bg-secondary/10 hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive transition-all active:scale-[0.98] rounded-xl"><AlertTriangle className="size-4" />Log Distraction</Button>
-                  <p className="text-[9px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest hidden sm:block">Press <kbd className="mx-1.5 px-1.5 py-0.5 rounded bg-secondary border border-border/50 font-mono text-foreground shadow-sm">Space</kbd> to record</p>
+                  <Button onClick={handleAddDistraction} variant="outline" size="lg" className="w-full h-12 sm:h-14 text-[14px] sm:text-[15px] font-medium gap-2 border border-border/60 bg-secondary/10 hover:border-destructive/50 hover:bg-destructive/10 hover:text-destructive transition-all active:scale-[0.98] rounded-xl"><AlertTriangle className="size-4" />{t('phases.focus.logDistraction')}</Button>
+                  <p className="text-[9px] sm:text-[10px] font-semibold text-muted-foreground uppercase tracking-widest hidden sm:block">{t('phases.focus.pressSpaceRecord')} <kbd className="mx-1.5 px-1.5 py-0.5 rounded bg-secondary border border-border/50 font-mono text-foreground shadow-sm">Space</kbd> {t('phases.focus.pressSpaceRecord2')}</p>
                 </div>
-                <Button onClick={markActiveTaskDone} variant="outline" size="lg" className="w-full h-12 text-[14px] font-medium gap-2 border-emerald-500/30 bg-emerald-500/5 text-emerald-400 hover:bg-emerald-500/15 hover:border-emerald-500/50 transition-all active:scale-[0.98] rounded-xl"><Check className="size-4" />Tarea Completada</Button>
-                <Button onClick={handleAbort} variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5 mt-1 rounded-lg"><Square className="size-3" />Abort Session</Button>
+                <Button onClick={markActiveTaskDone} variant="outline" size="lg" className="w-full h-12 text-[14px] font-medium gap-2 border-emerald-500/30 bg-emerald-500/5 text-emerald-400 hover:bg-emerald-500/15 hover:border-emerald-500/50 transition-all active:scale-[0.98] rounded-xl"><Check className="size-4" />{t('phases.focus.taskCompleted')}</Button>
+                <Button onClick={handleAbort} variant="ghost" size="sm" className="text-xs text-muted-foreground hover:text-destructive hover:bg-destructive/10 gap-1.5 mt-1 rounded-lg"><Square className="size-3" />{t('phases.focus.abortSession')}</Button>
               </div>
             </Card>
           </div>
@@ -669,11 +671,11 @@ export default function GuestTimer() {
           {upcomingTasks.length > 0 && (
             <div className="w-full sm:absolute sm:bottom-6 sm:right-6 sm:max-w-[220px] flex flex-col items-center sm:items-end z-10 pointer-events-none mt-6 sm:mt-0">
               <div className="w-full max-w-[280px] sm:w-auto space-y-1.5 pointer-events-auto flex flex-col items-center sm:items-end">
-                <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2">A continuacion</p>
-                {upcomingTasks.slice(0, 5).map((t) => (
-                  <div key={t.id} className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
-                    <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: t.color }} />
-                    <span className="text-xs text-white/50 truncate flex-1 text-left sm:text-right">{t.title}</span>
+                <p className="text-[10px] font-semibold uppercase tracking-widest text-white/30 mb-2">{t('phases.focus.upNext')}</p>
+                {upcomingTasks.slice(0, 5).map((uTask) => (
+                  <div key={uTask.id} className="w-full flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
+                    <div className="w-1.5 h-1.5 rounded-full shrink-0" style={{ backgroundColor: uTask.color }} />
+                    <span className="text-xs text-white/50 truncate flex-1 text-left sm:text-right">{uTask.title}</span>
                   </div>
                 ))}
               </div>
@@ -705,7 +707,7 @@ export default function GuestTimer() {
                   <div key={i} className={`h-2 w-2 rounded-full ${i < cycleState.currentCycle ? 'bg-emerald-500' : 'bg-white/20'}`} />
                 ))}
               </div>
-              <p className="text-[10px] text-blue-300/40 font-medium tracking-wide">Descanso {isLong ? 'largo' : 'corto'}</p>
+              <p className="text-[10px] text-blue-300/40 font-medium tracking-wide">{t('phases.break.breakPrefix')} {isLong ? t('phases.break.long') : t('phases.break.short')}</p>
             </div>
             <LiveClock className="pointer-events-auto" />
           </div>
@@ -713,8 +715,8 @@ export default function GuestTimer() {
           <div className="flex-1 flex flex-col items-center justify-center w-full z-10 pointer-events-auto my-6 sm:my-auto text-center relative">
             <div className="flex h-16 w-16 sm:h-20 sm:w-20 items-center justify-center rounded-3xl bg-blue-500/10 ring-1 ring-blue-500/20 mb-6 sm:mb-8 mx-auto"><Coffee className="h-7 w-7 sm:h-9 sm:w-9 text-blue-400" /></div>
             <div className="space-y-1 sm:space-y-2 mb-6 sm:mb-8">
-              <h3 className="text-2xl sm:text-3xl font-bold text-white/90">Descanso</h3>
-              <p className="text-xs sm:text-sm text-blue-200/50">{isLong ? 'Descansa 15 minutos. Estirarte, hidratarte.' : 'Descansa 5 minutos. Respira profundo.'}</p>
+              <h3 className="text-2xl sm:text-3xl font-bold text-white/90">{t('phases.break.breakPrefix')}</h3>
+              <p className="text-xs sm:text-sm text-blue-200/50">{isLong ? t('phases.break.descLong') : t('phases.break.descShort')}</p>
             </div>
             
             <div className="relative w-full aspect-square max-w-[220px] sm:max-w-[256px] mx-auto flex items-center justify-center mb-6 sm:mb-8">
@@ -727,7 +729,7 @@ export default function GuestTimer() {
               </div>
             </div>
             
-            <Button onClick={skipBreak} variant="ghost" size="sm" className="text-xs text-blue-300/40 hover:text-blue-200 hover:bg-blue-500/10 gap-1.5 rounded-lg"><SkipForward className="size-3" />Saltar descanso</Button>
+            <Button onClick={skipBreak} variant="ghost" size="sm" className="text-xs text-blue-300/40 hover:text-blue-200 hover:bg-blue-500/10 gap-1.5 rounded-lg"><SkipForward className="size-3" />{t('phases.break.skipBreak')}</Button>
           </div>
           
           {/* Spacer for bottom if needed (only to keep justify-between balanced if no upcoming tasks normally) */}
@@ -743,12 +745,12 @@ export default function GuestTimer() {
       <div className="w-full max-w-md mx-auto flex flex-col items-center gap-6 text-center">
         <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-emerald-500/10 ring-1 ring-emerald-500/20"><Check className="h-7 w-7 text-emerald-500" /></div>
         <div className="space-y-2">
-          <h3 className="text-2xl font-bold text-foreground">{cycleState.totalCycles > 1 ? `${cycleState.totalCycles} ciclos completados` : 'Pomodoro completado'}</h3>
+          <h3 className="text-2xl font-bold text-foreground">{cycleState.totalCycles > 1 ? t('phases.sessionDone.multiCycles', { count: cycleState.totalCycles }) : t('phases.sessionDone.singleCycle')}</h3>
           <p className="text-sm text-muted-foreground"><span className="font-semibold text-foreground">{activeTask.title}</span></p>
         </div>
         <div className="flex flex-col sm:flex-row gap-3 w-full">
-          <Button onClick={markActiveTaskDone} size="lg" className="flex-1 gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"><Check className="size-4" />Tarea completada</Button>
-          <Button onClick={handleBackToPlanning} variant="outline" size="lg" className="flex-1 gap-2 rounded-xl">Volver al plan</Button>
+          <Button onClick={markActiveTaskDone} size="lg" className="flex-1 gap-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white"><Check className="size-4" />{t('phases.sessionDone.taskCompletedBtn')}</Button>
+          <Button onClick={handleBackToPlanning} variant="outline" size="lg" className="flex-1 gap-2 rounded-xl">{t('phases.sessionDone.backToPlan')}</Button>
         </div>
       </div>
     )
@@ -956,11 +958,15 @@ export default function GuestTimer() {
 
 // ===================== LiveClock =====================
 
+import { useLocale } from 'next-intl'
+
 function LiveClock({ className = '' }: { className?: string }) {
   const [now, setNow] = useState(new Date())
+  const locale = useLocale()
+  
   useEffect(() => { const i = setInterval(() => setNow(new Date()), 1000); return () => clearInterval(i) }, [])
-  const date = now.toLocaleDateString('es-ES', { weekday: 'short', day: 'numeric', month: 'short' })
-  const time = now.toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+  const date = now.toLocaleDateString(locale, { weekday: 'short', day: 'numeric', month: 'short' })
+  const time = now.toLocaleTimeString(locale, { hour: '2-digit', minute: '2-digit' })
   return (
     <div className={`text-right space-y-0.5 ${className}`}>
       <p className="text-sm font-mono font-medium text-white/60 tabular-nums leading-none">{time}</p>

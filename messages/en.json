@@ -222,5 +222,79 @@
   "ViewToggle": {
     "objectives": "Objectives",
     "dailyPlan": "Daily Plan"
+  },
+  "GuestTimer": {
+    "phases": {
+      "loading": "Plan your day",
+      "focus": {
+        "cycleProgress": "Cycle {current}/{total}",
+        "deepWork": "Deep Work",
+        "logDistraction": "Log Distraction",
+        "pressSpaceRecord": "Press",
+        "pressSpaceRecord2": "to record",
+        "taskCompleted": "Task Completed",
+        "abortSession": "Abort Session",
+        "upNext": "Up Next"
+      },
+      "break": {
+        "titleShort": "Short Break",
+        "titleLong": "Long Break",
+        "descShort": "Rest for 5 minutes. Take a deep breath.",
+        "descLong": "Rest for 15 minutes. Stretch out and hydrate.",
+        "skipBreak": "Skip Break",
+        "breakPrefix": "Break",
+        "long": "long",
+        "short": "short"
+      },
+      "sessionDone": {
+        "multiCycles": "{count} cycles completed",
+        "singleCycle": "Pomodoro completed",
+        "taskCompletedBtn": "Task completed",
+        "backToPlan": "Back to plan"
+      },
+      "allDone": {
+        "dayCompleted": "Day completed",
+        "howItWent": "Here is how you did today.",
+        "tasksStat": "Tasks",
+        "pomodorosStat": "Pomodoros",
+        "focusStat": "Focus",
+        "avgDistractions": "Average distractions",
+        "summary": "Summary",
+        "distrAbbr": "dist.",
+        "createAccount": "Create an account to save your history.",
+        "newDay": "New day"
+      },
+      "planning": {
+        "allCompletedTitle": "All tasks completed",
+        "completedCount": "You completed {count, plural, =1 {1 task} other {# tasks}}.",
+        "viewSummary": "View day summary",
+        "resetAll": "Reset all",
+        "planYourDay": "Plan your day",
+        "addTasksDesc": "Add your tasks and get in the zone.",
+        "newTaskPlaceholder": "New task...",
+        "color": "Color",
+        "pomodoroCycles": "Pomodoro cycles",
+        "addTask": "Add task",
+        "writeFirstTask": "Write your first task to begin.",
+        "pomodoroUnit": "{count, plural, =1 {pomodoro} other {pomodoros}}",
+        "distrAbbr": "dist.",
+        "startJornada": "Start Journey",
+        "plannedSummary": "{count, plural, =1 {1 task} other {# tasks}} · {minutes}m planned",
+        "pressSpaceRecord": "Press",
+        "pressSpaceRecord2": "during a session to log distractions"
+      }
+    },
+    "toasts": {
+      "longBreak": "Long Break",
+      "shortBreak": "Short Break",
+      "cycleXofY": "Cycle {current} of {total}",
+      "nextTask": "Up next: {title}",
+      "jornadaCompleted": "Journey completed",
+      "cyclesCompleted": "Cycles completed",
+      "distractionLogged": "Distraction logged",
+      "jornadaStarted": "Journey started: {title}",
+      "sessionAborted": "Session aborted",
+      "taskCompleted": "Task completed"
+    }
   }
 }

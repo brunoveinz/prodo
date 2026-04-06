@@ -222,5 +222,79 @@
   "ViewToggle": {
     "objectives": "Objetivos",
     "dailyPlan": "Plan del Dia"
+  },
+  "GuestTimer": {
+    "phases": {
+      "loading": "Planifica tu día",
+      "focus": {
+        "cycleProgress": "Ciclo {current}/{total}",
+        "deepWork": "Deep Work",
+        "logDistraction": "Registrar Distracción",
+        "pressSpaceRecord": "Presiona",
+        "pressSpaceRecord2": "para registrar",
+        "taskCompleted": "Tarea Completada",
+        "abortSession": "Abortar Sesión",
+        "upNext": "A continuación"
+      },
+      "break": {
+        "titleShort": "Descanso corto",
+        "titleLong": "Descanso largo",
+        "descShort": "Descansa 5 minutos. Respira profundo.",
+        "descLong": "Descansa 15 minutos. Estírate, hidrátate.",
+        "skipBreak": "Saltar descanso",
+        "breakPrefix": "Descanso",
+        "long": "largo",
+        "short": "corto"
+      },
+      "sessionDone": {
+        "multiCycles": "{count} ciclos completados",
+        "singleCycle": "Pomodoro completado",
+        "taskCompletedBtn": "Tarea completada",
+        "backToPlan": "Volver al plan"
+      },
+      "allDone": {
+        "dayCompleted": "Día completado",
+        "howItWent": "Así te fue hoy.",
+        "tasksStat": "Tareas",
+        "pomodorosStat": "Pomodoros",
+        "focusStat": "Enfoque",
+        "avgDistractions": "Distracciones promedio",
+        "summary": "Resumen",
+        "distrAbbr": "dist.",
+        "createAccount": "Crea una cuenta para guardar tu historial.",
+        "newDay": "Nuevo día"
+      },
+      "planning": {
+        "allCompletedTitle": "Todas las tareas completadas",
+        "completedCount": "Completaste {count, plural, =1 {1 tarea} other {# tareas}}.",
+        "viewSummary": "Ver resumen del día",
+        "resetAll": "Reiniciar todo",
+        "planYourDay": "Planifica tu día",
+        "addTasksDesc": "Agrega tus tareas y entra en la zona.",
+        "newTaskPlaceholder": "Nueva tarea...",
+        "color": "Color",
+        "pomodoroCycles": "Ciclos de pomodoro",
+        "addTask": "Agregar tarea",
+        "writeFirstTask": "Escribe tu primera tarea para comenzar.",
+        "pomodoroUnit": "{count, plural, =1 {pomodoro} other {pomodoros}}",
+        "distrAbbr": "dist.",
+        "startJornada": "Comenzar jornada",
+        "plannedSummary": "{count, plural, =1 {1 tarea} other {# tareas}} · {minutes}m planificados",
+        "pressSpaceRecord": "Presiona",
+        "pressSpaceRecord2": "durante una sesión para registrar distracciones"
+      }
+    },
+    "toasts": {
+      "longBreak": "Descanso largo",
+      "shortBreak": "Descanso corto",
+      "cycleXofY": "Ciclo {current} de {total}",
+      "nextTask": "Siguiente: {title}",
+      "jornadaCompleted": "Jornada completada",
+      "cyclesCompleted": "Ciclos completados",
+      "distractionLogged": "Distracción registrada",
+      "jornadaStarted": "Jornada iniciada: {title}",
+      "sessionAborted": "Sesión detenida",
+      "taskCompleted": "Tarea completada"
+    }
   }
 }
