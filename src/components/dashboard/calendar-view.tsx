@@ -90,11 +90,11 @@ export default function CalendarView({ year, month, data }: CalendarViewProps) {
       </div>
 
       {/* Calendar grid */}
-      <div className="rounded-2xl border border-border/40 bg-card/20 overflow-hidden">
+      <div className="rounded-2xl border border-border bg-card overflow-hidden shadow-sm">
         {/* Day labels */}
-        <div className="grid grid-cols-7 border-b border-border/40">
+        <div className="grid grid-cols-7 border-b border-border bg-muted/60">
           {DAY_KEYS.map((key) => (
-            <div key={key} className="py-2 text-center text-[11px] font-semibold text-muted-foreground uppercase tracking-wider">
+            <div key={key} className="py-2 text-center text-[11px] font-semibold text-foreground/80 uppercase tracking-wider">
               {t(`days.${key}`)}
             </div>
           ))}
@@ -104,7 +104,7 @@ export default function CalendarView({ year, month, data }: CalendarViewProps) {
         <div className="grid grid-cols-7">
           {cells.map((day, i) => {
             if (day === null) {
-              return <div key={`empty-${i}`} className="h-20 border-b border-r border-border/20" />
+              return <div key={`empty-${i}`} className="h-20 border-b border-r border-border/60 bg-muted/20" />
             }
 
             const dateStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`
@@ -116,9 +116,9 @@ export default function CalendarView({ year, month, data }: CalendarViewProps) {
               <button
                 key={day}
                 onClick={() => dayData && handleDayClick(day)}
-                className={`relative h-20 p-1.5 border-b border-r border-border/20 text-left transition-all ${
-                  dayData ? 'cursor-pointer hover:bg-muted/40' : 'cursor-default'
-                } ${isSelected ? 'bg-primary/5 ring-1 ring-primary/30' : ''}`}
+                className={`relative h-20 p-1.5 border-b border-r border-border/60 text-left transition-all ${
+                  dayData ? 'cursor-pointer bg-background hover:bg-muted' : 'cursor-default'
+                } ${isSelected ? 'bg-primary/10 ring-2 ring-primary/60' : ''}`}
               >
                 <span
                   className={`text-xs font-medium ${
@@ -145,7 +145,7 @@ export default function CalendarView({ year, month, data }: CalendarViewProps) {
                       ))}
                     </div>
                     {/* Session count */}
-                    <p className="text-[10px] text-muted-foreground">
+                    <p className="text-[10px] font-medium text-foreground/70">
                       {dayData.sessionCount}{t('ses')} · {dayData.hours.toFixed(1)}h
                     </p>
                   </div>

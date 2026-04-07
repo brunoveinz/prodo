@@ -129,12 +129,12 @@ export async function getDashboardData(days: 7 | 30 = 7) {
   return {
     dailyHours: dailyHours.map((item) => ({
       date: item.date,
-      hours: Number(item.hours?.toFixed(2) || 0),
+      hours: Number(Number(item.hours ?? 0).toFixed(2)),
     })),
     objectiveBreakdown: objectiveBreakdown.map((item) => ({
       name: item.name,
       color: item.color,
-      hours: Number(item.hours?.toFixed(2) || 0),
+      hours: Number(Number(item.hours ?? 0).toFixed(2)),
     })),
     avgDistractions: Number(avgDistractions.toFixed(1)),
   }
@@ -193,21 +193,13 @@ export async function getDayDetail(dateStr: string) {
       objectiveName: objectives.name,
       objectiveColor: objectives.color,
       sessionCount: count(pomodoroSessions.id),
-      totalMinutes: sql<number>`SUM(${pomodoroSessions.durationMinutes})`,
-      distractionCount: sql<number>`(
-        SELECT COUNT(*)::int FROM distractions d
-        WHERE d.session_id IN (
-          SELECT ps2.id FROM pomodoro_sessions ps2
-          WHERE ps2.task_id = ${tasks.id}
-          AND ps2.started_at >= ${dayStart}
-          AND ps2.started_at <= ${dayEnd}
-          AND ps2.status = 'completed'
-        )
-      )`,
+      totalMinutes: sql<number>`SUM(${pomodoroSessions.durationMinutes})`.as('totalMinutes'),
+      distractionCount: sql<number>`COUNT(DISTINCT ${distractions.id})`.as('distractionCount'),
     })
     .from(pomodoroSessions)
     .innerJoin(tasks, eq(pomodoroSessions.taskId, tasks.id))
     .innerJoin(objectives, eq(tasks.objectiveId, objectives.id))
+    .leftJoin(distractions, eq(distractions.sessionId, pomodoroSessions.id))
     .where(
       and(
         eq(objectives.userId, session.user.id),
