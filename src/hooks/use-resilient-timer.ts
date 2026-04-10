@@ -17,6 +17,13 @@ export function useResilientTimer({
   const [remainingMs, setRemainingMs] = useState(durationMinutes * 60 * 1000)
 
   const startTimer = useCallback(() => {
+    // Check if timer is paused — don't overwrite paused state
+    const pausedRemaining = localStorage.getItem('focustracker_paused_remaining')
+    if (pausedRemaining && parseInt(pausedRemaining, 10) > 0) {
+      // Timer is paused, don't auto-start a new session
+      return
+    }
+
     // Check if there's already a running session (e.g. after page refresh)
     const existingStart = localStorage.getItem('focustracker_session_start')
     const existingDuration = localStorage.getItem('focustracker_duration_ms')

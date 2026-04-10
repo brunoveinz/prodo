@@ -25,6 +25,7 @@ export async function getTodaysPlan() {
       taskId: tasks.id,
       taskTitle: tasks.title,
       isCompleted: tasks.isCompleted,
+      estimatedPomodoros: tasks.estimatedPomodoros,
       objectiveId: objectives.id,
       objectiveName: objectives.name,
       objectiveColor: objectives.color,

@@ -8,9 +8,9 @@ import { Card } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { useToast } from '@/components/ui/notification'
-import { Target, ChevronRight, Trash2, Palette, X } from 'lucide-react'
+import { Target, ChevronRight, Trash2, Palette, Pencil } from 'lucide-react'
 import CreateObjectiveForm from './create-objective-form'
-import { deleteObjective, updateObjectiveColor } from '@/actions/objectives'
+import { deleteObjective, updateObjectiveColor, updateObjectiveName } from '@/actions/objectives'
 import { useTranslations } from 'next-intl'
 
 const PRESET_COLORS = [
@@ -29,6 +29,8 @@ export default function ObjectiveSelector({
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null)
   const [colorPickerId, setColorPickerId] = useState<string | null>(null)
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null)
+  const [editNameId, setEditNameId] = useState<string | null>(null)
+  const [editNameValue, setEditNameValue] = useState('')
   const [isPending, startTransition] = useTransition()
   const router = useRouter()
   const toast = useToast()
@@ -39,6 +41,17 @@ export default function ObjectiveSelector({
       await deleteObjective(objectiveId)
       toast({ title: t('deleted'), variant: 'success' })
       setConfirmDeleteId(null)
+      setMenuOpenId(null)
+      router.refresh()
+    })
+  }
+
+  function handleEditName(objectiveId: string) {
+    startTransition(async () => {
+      if (!editNameValue.trim()) return
+      await updateObjectiveName(objectiveId, editNameValue)
+      toast({ title: t('nameUpdated'), variant: 'success' })
+      setEditNameId(null)
       setMenuOpenId(null)
       router.refresh()
     })
@@ -81,6 +94,7 @@ export default function ObjectiveSelector({
           const showMenu = menuOpenId === objective.id
           const showColorPicker = colorPickerId === objective.id
           const showConfirmDelete = confirmDeleteId === objective.id
+          const showEditName = editNameId === objective.id
 
           return (
             <div key={objective.id} className="relative">
@@ -190,8 +204,48 @@ export default function ObjectiveSelector({
                         />
                       </div>
                     </div>
+                  ) : showEditName ? (
+                    <div className="p-3 space-y-2">
+                      <p className="text-xs text-muted-foreground font-medium">{t('editName')}</p>
+                      <input
+                        type="text"
+                        value={editNameValue}
+                        onChange={(e) => setEditNameValue(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleEditName(objective.id) }}
+                        className="w-full h-8 rounded-lg border border-border/60 bg-secondary/20 px-2 text-sm text-foreground outline-none focus:border-primary"
+                        autoFocus
+                      />
+                      <div className="flex gap-2">
+                        <Button
+                          onClick={() => handleEditName(objective.id)}
+                          disabled={isPending || !editNameValue.trim()}
+                          size="sm"
+                          className="flex-1 text-xs h-7"
+                        >
+                          {t('saveBtn')}
+                        </Button>
+                        <Button
+                          onClick={() => setEditNameId(null)}
+                          size="sm"
+                          variant="ghost"
+                          className="flex-1 text-xs h-7"
+                        >
+                          {t('cancelBtn')}
+                        </Button>
+                      </div>
+                    </div>
                   ) : (
                     <div className="py-1">
+                      <button
+                        onClick={() => {
+                          setEditNameId(objective.id)
+                          setEditNameValue(objective.name)
+                        }}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors"
+                      >
+                        <Pencil className="size-3.5" />
+                        {t('editName')}
+                      </button>
                       <button
                         onClick={() => setColorPickerId(objective.id)}
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted/50 transition-colors"
@@ -204,7 +258,7 @@ export default function ObjectiveSelector({
                         className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
                       >
                         <Trash2 className="size-3.5" />
-                        Eliminar objetivo
+                        {t('deleteObjective')}
                       </button>
                     </div>
                   )}

@@ -2,9 +2,11 @@
 
 import { useState, useTransition } from 'react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { completeTask } from '@/actions/tasks'
-import { removeTaskFromPlan, reorderPlanItems } from '@/actions/daily-plan'
-import { Play, CheckCircle2, Circle, CalendarDays, X, GripVertical } from 'lucide-react'
+import { removeTaskFromPlan, reorderPlanItems, addTaskToPlan } from '@/actions/daily-plan'
+import { addTaskComment, deleteTaskComment } from '@/actions/comments'
+import { Play, CheckCircle2, Circle, CalendarDays, X, GripVertical, MessageSquare, Send, Trash2, ChevronDown, ChevronRight, Plus, Inbox } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 type PlanItem = {
@@ -13,20 +15,43 @@ type PlanItem = {
   taskId: string
   taskTitle: string
   isCompleted: boolean
+  estimatedPomodoros: number
   objectiveId: string
   objectiveName: string
   objectiveColor: string
 }
 
-interface DailyPlanProps {
-  items: PlanItem[]
+type BacklogItem = {
+  id: string
+  title: string
+  isCompleted: boolean
+  estimatedPomodoros: number
+  objectiveId: string
+  objectiveName: string
+  objectiveColor: string
 }
 
-export default function DailyPlan({ items }: DailyPlanProps) {
+type Comment = {
+  id: string
+  content: string
+  createdAt: Date | null
+}
+
+interface DailyPlanProps {
+  items: PlanItem[]
+  backlogItems: BacklogItem[]
+  commentsMap: Record<string, Comment[]>
+}
+
+export default function DailyPlan({ items, backlogItems, commentsMap }: DailyPlanProps) {
   const [isPending, startTransition] = useTransition()
   const [dragIdx, setDragIdx] = useState<number | null>(null)
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
   const [localItems, setLocalItems] = useState<PlanItem[] | null>(null)
+  const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null)
+  const [commentInput, setCommentInput] = useState('')
+  const [showBacklog, setShowBacklog] = useState(false)
+  const router = useRouter()
   const t = useTranslations('Plan')
 
   const displayItems = localItems ?? items
@@ -68,111 +93,258 @@ export default function DailyPlan({ items }: DailyPlanProps) {
     })
   }
 
+  function handleAddToToday(taskId: string) {
+    startTransition(async () => {
+      await addTaskToPlan(taskId)
+      router.refresh()
+    })
+  }
+
+  function handleAddComment(taskId: string) {
+    if (!commentInput.trim()) return
+    startTransition(async () => {
+      await addTaskComment(taskId, commentInput)
+      setCommentInput('')
+      router.refresh()
+    })
+  }
+
+  function handleDeleteComment(commentId: string) {
+    startTransition(async () => {
+      await deleteTaskComment(commentId)
+      router.refresh()
+    })
+  }
+
   const completedCount = items.filter((i) => i.isCompleted).length
   const totalCount = items.length
 
-  if (totalCount === 0) {
-    return (
-      <div className="flex flex-col items-center justify-center py-16 text-center">
-        <CalendarDays className="h-8 w-8 text-muted-foreground/40 mb-3" />
-        <p className="text-sm font-medium text-foreground">{t('emptyTitle')}</p>
-        <p className="text-xs text-muted-foreground mt-1">
-          {t('emptySub')}
-        </p>
-      </div>
-    )
-  }
-
   return (
-    <div className="space-y-4">
-      {/* Progress */}
-      <div className="flex items-center justify-between">
-        <p className="text-xs font-medium text-muted-foreground">
-          {t('completedOf', { completed: completedCount, total: totalCount })}
-        </p>
-      </div>
-      <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
-        <div
-          className="h-full rounded-full bg-primary transition-all duration-500"
-          style={{ width: `${(completedCount / totalCount) * 100}%` }}
-        />
-      </div>
-
-      {/* Task list */}
-      <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
-        <div className="divide-y divide-border">
-          {displayItems.map((item, idx) => (
-            <div
-              key={item.id}
-              draggable
-              onDragStart={() => handleDragStart(idx)}
-              onDragOver={(e) => handleDragOver(e, idx)}
-              onDragEnd={handleDragEnd}
-              className={`group flex items-center gap-3 px-4 py-3 transition-all hover:bg-muted/50 ${
-                dragIdx === idx ? 'opacity-50' : ''
-              } ${dragOverIdx === idx && dragIdx !== idx ? 'border-t-2 border-primary' : ''}`}
-            >
-              <div className="shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground/60 transition-colors">
-                <GripVertical className="h-4 w-4" />
-              </div>
-              <button
-                onClick={() => handleToggle(item.taskId)}
-                disabled={isPending}
-                className="shrink-0 cursor-pointer transition-colors"
-              >
-                {item.isCompleted ? (
-                  <CheckCircle2
-                    className="h-[18px] w-[18px]"
-                    style={{ color: item.objectiveColor }}
-                  />
-                ) : (
-                  <Circle className="h-[18px] w-[18px] text-muted-foreground/40 hover:text-muted-foreground/70" />
-                )}
-              </button>
-
+    <div className="space-y-6">
+      {/* Today's Plan */}
+      <div className="space-y-4">
+        {totalCount === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-center">
+            <CalendarDays className="h-8 w-8 text-muted-foreground/40 mb-3" />
+            <p className="text-sm font-medium text-foreground">{t('emptyTitle')}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              {t('emptySub')}
+            </p>
+          </div>
+        ) : (
+          <>
+            {/* Progress */}
+            <div className="flex items-center justify-between">
+              <p className="text-xs font-medium text-muted-foreground">
+                {t('completedOf', { completed: completedCount, total: totalCount })}
+              </p>
+            </div>
+            <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
               <div
-                className="w-1.5 h-1.5 rounded-full shrink-0"
-                style={{ backgroundColor: item.objectiveColor }}
+                className="h-full rounded-full bg-primary transition-all duration-500"
+                style={{ width: `${(completedCount / totalCount) * 100}%` }}
               />
+            </div>
 
-              <div className="flex-1 min-w-0">
-                <span
-                  className={`text-sm block truncate ${
-                    item.isCompleted
-                      ? 'line-through text-muted-foreground'
-                      : 'text-foreground font-medium'
-                  }`}
-                >
-                  {item.taskTitle}
-                </span>
-                <span className="text-[11px] text-muted-foreground">{item.objectiveName}</span>
-              </div>
+            {/* Task list */}
+            <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <div className="divide-y divide-border">
+                {displayItems.map((item, idx) => {
+                  const isExpanded = expandedTaskId === item.taskId
+                  const taskComments = commentsMap[item.taskId] || []
 
-              <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                {!item.isCompleted && (
-                  <Link
-                    href={`/?objective=${item.objectiveId}&task=${item.taskId}&from=plan`}
-                    className="flex h-7 w-7 items-center justify-center rounded-md transition-all"
-                    style={{ backgroundColor: `${item.objectiveColor}15` }}
-                  >
-                    <Play
-                      className="h-3 w-3 translate-x-px"
-                      style={{ color: item.objectiveColor }}
-                    />
-                  </Link>
-                )}
-                <button
-                  onClick={() => handleRemove(item.id)}
-                  disabled={isPending}
-                  className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-destructive/10 transition-colors"
-                >
-                  <X className="h-3 w-3 text-muted-foreground/50" />
-                </button>
+                  return (
+                    <div key={item.id}>
+                      <div
+                        draggable
+                        onDragStart={() => handleDragStart(idx)}
+                        onDragOver={(e) => handleDragOver(e, idx)}
+                        onDragEnd={handleDragEnd}
+                        className={`group flex items-center gap-3 px-4 py-3 transition-all hover:bg-muted/50 ${
+                          dragIdx === idx ? 'opacity-50' : ''
+                        } ${dragOverIdx === idx && dragIdx !== idx ? 'border-t-2 border-primary' : ''}`}
+                      >
+                        <div className="shrink-0 cursor-grab active:cursor-grabbing text-muted-foreground/30 hover:text-muted-foreground/60 transition-colors">
+                          <GripVertical className="h-4 w-4" />
+                        </div>
+                        <button
+                          onClick={() => handleToggle(item.taskId)}
+                          disabled={isPending}
+                          className="shrink-0 cursor-pointer transition-colors"
+                        >
+                          {item.isCompleted ? (
+                            <CheckCircle2
+                              className="h-[18px] w-[18px]"
+                              style={{ color: item.objectiveColor }}
+                            />
+                          ) : (
+                            <Circle className="h-[18px] w-[18px] text-muted-foreground/40 hover:text-muted-foreground/70" />
+                          )}
+                        </button>
+
+                        <div
+                          className="w-1.5 h-1.5 rounded-full shrink-0"
+                          style={{ backgroundColor: item.objectiveColor }}
+                        />
+
+                        <div className="flex-1 min-w-0">
+                          <span
+                            className={`text-sm block truncate ${
+                              item.isCompleted
+                                ? 'line-through text-muted-foreground'
+                                : 'text-foreground font-medium'
+                            }`}
+                          >
+                            {item.taskTitle}
+                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] text-muted-foreground">{item.objectiveName}</span>
+                            {item.estimatedPomodoros > 1 && (
+                              <span className="text-[11px] text-muted-foreground">· {item.estimatedPomodoros} 🍅</span>
+                            )}
+                          </div>
+                        </div>
+
+                        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => setExpandedTaskId(isExpanded ? null : item.taskId)}
+                            className={`flex h-7 w-7 items-center justify-center rounded-md transition-all ${
+                              isExpanded ? 'bg-primary/10 text-primary' : 'hover:bg-muted/80 text-muted-foreground/50'
+                            }`}
+                          >
+                            <MessageSquare className="h-3.5 w-3.5" />
+                            {taskComments.length > 0 && (
+                              <span className="absolute -top-1 -right-1 text-[9px] font-bold text-primary">
+                                {taskComments.length}
+                              </span>
+                            )}
+                          </button>
+                          {!item.isCompleted && (
+                            <Link
+                              href={`/?objective=${item.objectiveId}&task=${item.taskId}&from=plan`}
+                              className="flex h-7 w-7 items-center justify-center rounded-md transition-all"
+                              style={{ backgroundColor: `${item.objectiveColor}15` }}
+                            >
+                              <Play
+                                className="h-3 w-3 translate-x-px"
+                                style={{ color: item.objectiveColor }}
+                              />
+                            </Link>
+                          )}
+                          <button
+                            onClick={() => handleRemove(item.id)}
+                            disabled={isPending}
+                            className="flex h-7 w-7 items-center justify-center rounded-md hover:bg-destructive/10 transition-colors"
+                          >
+                            <X className="h-3 w-3 text-muted-foreground/50" />
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Comments panel */}
+                      {isExpanded && (
+                        <div className="px-4 pb-3 pt-1 bg-muted/20 border-t border-border/50 animate-in slide-in-from-top-1 duration-150">
+                          {taskComments.length > 0 && (
+                            <div className="space-y-2 mb-3">
+                              {taskComments.map((comment) => (
+                                <div key={comment.id} className="group/comment flex items-start gap-2 text-xs">
+                                  <div className="flex-1 rounded-lg bg-card border border-border/40 px-3 py-2">
+                                    <p className="text-foreground/90 whitespace-pre-wrap">{comment.content}</p>
+                                    {comment.createdAt && (
+                                      <p className="text-[10px] text-muted-foreground/60 mt-1">
+                                        {new Date(comment.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                                      </p>
+                                    )}
+                                  </div>
+                                  <button
+                                    onClick={() => handleDeleteComment(comment.id)}
+                                    disabled={isPending}
+                                    className="shrink-0 opacity-0 group-hover/comment:opacity-100 mt-1 p-1 rounded hover:bg-destructive/10 transition-all"
+                                  >
+                                    <Trash2 className="h-3 w-3 text-muted-foreground/40" />
+                                  </button>
+                                </div>
+                              ))}
+                            </div>
+                          )}
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="text"
+                              value={commentInput}
+                              onChange={(e) => setCommentInput(e.target.value)}
+                              onKeyDown={(e) => { if (e.key === 'Enter') handleAddComment(item.taskId) }}
+                              placeholder={t('addComment')}
+                              className="flex-1 h-8 rounded-lg border border-border/40 bg-card px-3 text-xs text-foreground outline-none focus:border-primary transition-colors"
+                            />
+                            <button
+                              onClick={() => handleAddComment(item.taskId)}
+                              disabled={isPending || !commentInput.trim()}
+                              className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary hover:bg-primary/20 transition-colors disabled:opacity-40"
+                            >
+                              <Send className="h-3.5 w-3.5" />
+                            </button>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
               </div>
             </div>
-          ))}
-        </div>
+          </>
+        )}
       </div>
+
+      {/* Backlog Section */}
+      {backlogItems.length > 0 && (
+        <div className="space-y-3">
+          <button
+            onClick={() => setShowBacklog(!showBacklog)}
+            className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+          >
+            {showBacklog ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+            <Inbox className="h-4 w-4" />
+            {t('backlog')} ({backlogItems.length})
+          </button>
+
+          {showBacklog && (
+            <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/50 shadow-sm animate-in slide-in-from-top-2 duration-200">
+              <div className="divide-y divide-border/40">
+                {backlogItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="group flex items-center gap-3 px-4 py-2.5 transition-all hover:bg-muted/30"
+                  >
+                    <div
+                      className="w-1.5 h-1.5 rounded-full shrink-0"
+                      style={{ backgroundColor: item.objectiveColor }}
+                    />
+                    <div className="flex-1 min-w-0">
+                      <span className="text-sm text-foreground/80 block truncate">
+                        {item.title}
+                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-[11px] text-muted-foreground">{item.objectiveName}</span>
+                        {item.estimatedPomodoros > 1 && (
+                          <span className="text-[11px] text-muted-foreground">· {item.estimatedPomodoros} 🍅</span>
+                        )}
+                      </div>
+                    </div>
+                    <button
+                      onClick={() => handleAddToToday(item.id)}
+                      disabled={isPending}
+                      className="shrink-0 flex h-7 items-center gap-1 px-2 rounded-md text-xs font-medium text-primary bg-primary/5 hover:bg-primary/15 border border-primary/20 transition-all opacity-0 group-hover:opacity-100"
+                    >
+                      <Plus className="h-3 w-3" />
+                      {t('addToday')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }

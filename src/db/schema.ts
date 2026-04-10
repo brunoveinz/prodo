@@ -96,6 +96,7 @@ export const tasks = pgTable(
       .references(() => objectives.id, { onDelete: 'cascade' }),
     title: text().notNull(),
     isCompleted: boolean().notNull().default(false),
+    estimatedPomodoros: integer().notNull().default(1),
     createdAt: timestamp({ mode: 'date' }).defaultNow(),
   },
   (task) => ({
@@ -157,6 +158,25 @@ export const dailyPlanItems = pgTable(
   })
 )
 
+// Task comments
+export const taskComments = pgTable(
+  'task_comments',
+  {
+    id: uuid().primaryKey().defaultRandom(),
+    taskId: uuid()
+      .notNull()
+      .references(() => tasks.id, { onDelete: 'cascade' }),
+    userId: uuid()
+      .notNull()
+      .references(() => users.id, { onDelete: 'cascade' }),
+    content: text().notNull(),
+    createdAt: timestamp({ mode: 'date' }).defaultNow(),
+  },
+  (comment) => ({
+    taskIdIdx: index('task_comments_task_id_idx').on(comment.taskId),
+  })
+)
+
 // Relations
 export const usersRelations = relations(users, ({ many }) => ({
   objectives: many(objectives),
@@ -180,6 +200,18 @@ export const tasksRelations = relations(tasks, ({ one, many }) => ({
   }),
   pomodoroSessions: many(pomodoroSessions),
   dailyPlanItems: many(dailyPlanItems),
+  comments: many(taskComments),
+}))
+
+export const taskCommentsRelations = relations(taskComments, ({ one }) => ({
+  task: one(tasks, {
+    fields: [taskComments.taskId],
+    references: [tasks.id],
+  }),
+  user: one(users, {
+    fields: [taskComments.userId],
+    references: [users.id],
+  }),
 }))
 
 export const pomodoroSessionsRelations = relations(pomodoroSessions, ({ one, many }) => ({

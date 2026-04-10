@@ -2,8 +2,9 @@ import { auth } from '@/lib/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
 import { getObjectives } from '@/actions/objectives'
-import { getTasksByObjective } from '@/actions/tasks'
+import { getTasksByObjective, getBacklogTasks } from '@/actions/tasks'
 import { getTodaysPlan } from '@/actions/daily-plan'
+import { getTaskComments } from '@/actions/comments'
 import ObjectiveSelector from '@/components/objective-selector'
 import TaskSelector from '@/components/task-selector'
 import NewTaskPanel from '@/components/new-task-panel'
@@ -50,6 +51,15 @@ export default async function Page({ searchParams }: PageProps) {
   }
 
   const planItems = await getTodaysPlan()
+  const backlogItems = await getBacklogTasks()
+
+  // Load comments for today's plan tasks
+  const commentsMap: Record<string, Awaited<ReturnType<typeof getTaskComments>>> = {}
+  await Promise.all(
+    planItems.map(async (item) => {
+      commentsMap[item.taskId] = await getTaskComments(item.taskId)
+    })
+  )
 
   return (
     <main className="mx-auto max-w-[56rem] px-4 sm:px-6 py-12 space-y-12">
@@ -94,7 +104,7 @@ export default async function Page({ searchParams }: PageProps) {
                     planItemId: i.id,
                   }))}
               />
-              <DailyPlan items={planItems} />
+              <DailyPlan items={planItems} backlogItems={backlogItems} commentsMap={commentsMap} />
             </>
           )}
 

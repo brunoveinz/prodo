@@ -15,6 +15,7 @@ interface CreateTaskFormProps {
 
 export default function CreateTaskForm({ objectiveId }: CreateTaskFormProps) {
   const [title, setTitle] = useState('')
+  const [pomodoros, setPomodoros] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const router = useRouter()
   const toast = useToast()
@@ -36,6 +37,7 @@ export default function CreateTaskForm({ objectiveId }: CreateTaskFormProps) {
       })
 
       setTitle('')
+      setPomodoros(1)
       router.refresh()
     } catch (error) {
       toast({
@@ -51,6 +53,7 @@ export default function CreateTaskForm({ objectiveId }: CreateTaskFormProps) {
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-3 sm:flex-row sm:items-center">
       <input type="hidden" name="objectiveId" value={objectiveId} />
+      <input type="hidden" name="estimatedPomodoros" value={pomodoros} />
       <Input
         name="title"
         type="text"
@@ -60,6 +63,25 @@ export default function CreateTaskForm({ objectiveId }: CreateTaskFormProps) {
         onChange={(event) => setTitle(event.target.value)}
         className="flex-1"
       />
+      <div className="flex items-center gap-1.5 shrink-0">
+        <button
+          type="button"
+          onClick={() => setPomodoros(Math.max(1, pomodoros - 1))}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-secondary/20 text-muted-foreground hover:bg-secondary/40 transition-colors text-sm font-medium"
+        >
+          -
+        </button>
+        <span className="flex items-center gap-1 text-sm font-medium text-foreground min-w-[3rem] justify-center tabular-nums">
+          {pomodoros} <span className="text-xs text-muted-foreground">🍅</span>
+        </span>
+        <button
+          type="button"
+          onClick={() => setPomodoros(Math.min(10, pomodoros + 1))}
+          className="flex h-8 w-8 items-center justify-center rounded-lg border border-border/60 bg-secondary/20 text-muted-foreground hover:bg-secondary/40 transition-colors text-sm font-medium"
+        >
+          +
+        </button>
+      </div>
       <Button type="submit" size="sm" className="shrink-0 w-full sm:w-auto" disabled={isSubmitting}>
         <Plus className="h-4 w-4 mr-1" />
         {isSubmitting ? t('adding') : t('addBtn')}

@@ -125,6 +125,7 @@
       "title": "Título",
       "titlePlaceholder": "Ej. Diseñar flujo de onboarding",
       "objective": "Objetivo",
+      "pomodoros": "Pomodoros estimados",
       "cancel": "Cancelar",
       "start": "Comenzar"
     }
@@ -132,7 +133,10 @@
   "Plan": {
     "emptyTitle": "Sin tareas para hoy",
     "emptySub": "Usa el boton + para agregar tareas al dia",
-    "completedOf": "{completed} de {total} completadas"
+    "completedOf": "{completed} de {total} completadas",
+    "backlog": "Backlog",
+    "addToday": "Hoy",
+    "addComment": "Agregar comentario..."
   },
   "Jornada": {
     "longBreakToast": "Descanso largo",
@@ -174,6 +178,9 @@
       "deleteBtn": "Eliminar",
       "cancelBtn": "Cancelar",
       "changeColor": "Cambiar color",
+      "editName": "Editar nombre",
+      "nameUpdated": "Nombre actualizado",
+      "saveBtn": "Guardar",
       "deleteObjective": "Eliminar objetivo"
     },
     "Tasks": {

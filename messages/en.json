@@ -125,6 +125,7 @@
       "title": "Title",
       "titlePlaceholder": "e.g., Design onboarding flow",
       "objective": "Objective",
+      "pomodoros": "Estimated pomodoros",
       "cancel": "Cancel",
       "start": "Start"
     }
@@ -132,7 +133,10 @@
   "Plan": {
     "emptyTitle": "No tasks for today",
     "emptySub": "Use the + button to add tasks for the day",
-    "completedOf": "{completed} of {total} completed"
+    "completedOf": "{completed} of {total} completed",
+    "backlog": "Backlog",
+    "addToday": "Today",
+    "addComment": "Add a comment..."
   },
   "Jornada": {
     "longBreakToast": "Long break",
@@ -174,6 +178,9 @@
       "deleteBtn": "Delete",
       "cancelBtn": "Cancel",
       "changeColor": "Change color",
+      "editName": "Edit name",
+      "nameUpdated": "Name updated",
+      "saveBtn": "Save",
       "deleteObjective": "Delete objective"
     },
     "Tasks": {

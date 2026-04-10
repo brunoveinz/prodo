@@ -156,15 +156,22 @@ export default function TaskSelector({
                   )}
                 </div>
 
-                <span
-                  className={`flex-1 text-[14px] ${
-                    task.isCompleted
-                      ? 'line-through text-muted-foreground/60'
-                      : 'text-foreground font-medium'
-                  }`}
-                >
-                  {task.title}
-                </span>
+                <div className="flex-1 min-w-0">
+                  <span
+                    className={`text-[14px] block truncate ${
+                      task.isCompleted
+                        ? 'line-through text-muted-foreground/60'
+                        : 'text-foreground font-medium'
+                    }`}
+                  >
+                    {task.title}
+                  </span>
+                  {task.estimatedPomodoros > 1 && (
+                    <span className="text-[11px] text-muted-foreground">
+                      {task.estimatedPomodoros} 🍅 · {task.estimatedPomodoros * 25}m
+                    </span>
+                  )}
+                </div>
 
                 <div
                   className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md opacity-0 group-hover:opacity-100 transition-all scale-95 group-hover:scale-100"

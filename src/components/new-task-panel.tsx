@@ -21,6 +21,7 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
   const [isOpen, setIsOpen] = useState(false)
   const [title, setTitle] = useState('')
   const [objectiveId, setObjectiveId] = useState(objectives[0]?.id || '')
+  const [pomodoros, setPomodoros] = useState(1)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const toast = useToast()
   const router = useRouter()
@@ -47,6 +48,7 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
       const formData = new FormData()
       formData.append('objectiveId', objectiveId)
       formData.append('title', title.trim())
+      formData.append('estimatedPomodoros', pomodoros.toString())
       const task = await createTask(formData)
       await addTaskToPlan(task.id)
 
@@ -57,6 +59,7 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
       })
 
       setTitle('')
+      setPomodoros(1)
       setIsSubmitting(false)
       setIsOpen(false)
       router.push('/?view=plan')
@@ -130,6 +133,29 @@ export default function NewTaskPanel({ objectives }: NewTaskPanelProps) {
                       </option>
                     ))}
                   </select>
+                </div>
+                <div>
+                  <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-widest mb-2 block">{t('pomodoros')}</Label>
+                  <div className="flex items-center gap-2 mt-1">
+                    <button
+                      type="button"
+                      onClick={() => setPomodoros(Math.max(1, pomodoros - 1))}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/40 bg-secondary/20 text-muted-foreground hover:bg-secondary/40 transition-colors text-lg font-medium"
+                    >
+                      -
+                    </button>
+                    <span className="flex items-center gap-1.5 text-base font-semibold text-foreground min-w-[4rem] justify-center tabular-nums">
+                      {pomodoros} <span className="text-sm">🍅</span>
+                    </span>
+                    <button
+                      type="button"
+                      onClick={() => setPomodoros(Math.min(10, pomodoros + 1))}
+                      className="flex h-10 w-10 items-center justify-center rounded-xl border border-border/40 bg-secondary/20 text-muted-foreground hover:bg-secondary/40 transition-colors text-lg font-medium"
+                    >
+                      +
+                    </button>
+                    <span className="text-xs text-muted-foreground ml-1">({pomodoros * 25}m)</span>
+                  </div>
                 </div>
               </div>
 
