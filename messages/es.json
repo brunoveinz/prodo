@@ -141,6 +141,7 @@
     "backlogTaskPlaceholder": "Nombre de la tarea...",
     "cancelBacklog": "Cancelar",
     "addBacklog": "Agregar",
+    "startJornada": "Comenzar",
     "emptyBacklog": "No hay tareas pendientes"
   },
   "Jornada": {

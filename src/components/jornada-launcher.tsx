@@ -8,7 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/notification'
 import {
   Play, Square, Zap, AlertTriangle, Coffee,
-  SkipForward, CheckCircle2, Pause, Rocket, Check, Trophy, GripVertical
+  SkipForward, CheckCircle2, Pause, Trophy, GripVertical
 } from 'lucide-react'
 import DotGrid from './dot-grid'
 import Confetti from './confetti'
@@ -28,9 +28,10 @@ const RING_STROKE = 8
 const RING_CIRCUMFERENCE = 2 * Math.PI * RING_RADIUS
 const RING_SIZE = (RING_RADIUS + RING_STROKE) * 2
 
-const JORNADA_STORAGE_KEY = 'prodo_jornada_state'
-const JORNADA_TIMER_START = 'prodo_jornada_timer_start'
-const JORNADA_TIMER_DURATION = 'prodo_jornada_timer_duration'
+export const JORNADA_STORAGE_KEY = 'prodo_jornada_state'
+export const JORNADA_TIMER_START = 'prodo_jornada_timer_start'
+export const JORNADA_TIMER_DURATION = 'prodo_jornada_timer_duration'
+export const JORNADA_FOCUS_MS = FOCUS_MINUTES * 60 * 1000
 
 type JornadaTask = {
   taskId: string
@@ -304,17 +305,6 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
     }
   }
 
-  function startJornada() {
-    if (localTasks.length === 0) return
-    const state: JornadaState = { currentIndex: 0, completedPomodoros: 0, phase: 'focus' }
-    setJornadaState(state)
-    setDistractionBuffer([])
-    timer.start(FOCUS_MINUTES * 60 * 1000)
-    getAudioCtx()
-    playStartTone()
-    toast({ title: t('startedToast', { title: localTasks[0].taskTitle }), variant: 'info' })
-  }
-
   function handleAbort() {
     timer.stop()
     clearJornada()
@@ -437,20 +427,9 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
     setDragOverIdx(null)
   }
 
-  // If no jornada running, show start button
+  // If no jornada running, render nothing (start button is in DailyPlan)
   if (!jornadaState) {
-    if (localTasks.length === 0) return null
-
-    return (
-      <Button
-        onClick={startJornada}
-        size="lg"
-        className="w-full h-14 rounded-2xl text-[15px] font-bold gap-3 bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 text-white shadow-xl transition-all hover:scale-[1.01]"
-      >
-        <Rocket className="size-5" />
-        {t('startAction', { count: localTasks.length })}
-      </Button>
-    )
+    return null
   }
 
   const currentTask = localTasks[jornadaState.currentIndex]

@@ -7,7 +7,8 @@ import { completeTask } from '@/actions/tasks'
 import { removeTaskFromPlan, reorderPlanItems, addTaskToPlan } from '@/actions/daily-plan'
 import { addTaskComment, deleteTaskComment } from '@/actions/comments'
 import { createTask } from '@/actions/tasks'
-import { Play, CheckCircle2, Circle, CalendarDays, X, GripVertical, MessageSquare, Send, Trash2, ChevronDown, ChevronRight, Plus, Inbox } from 'lucide-react'
+import { JORNADA_STORAGE_KEY, JORNADA_TIMER_START, JORNADA_TIMER_DURATION, JORNADA_FOCUS_MS } from './jornada-launcher'
+import { Play, CheckCircle2, Circle, CalendarDays, X, GripVertical, MessageSquare, Send, Trash2, ChevronDown, ChevronRight, Plus, Inbox, Rocket } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 type PlanItem = {
@@ -121,6 +122,16 @@ export default function DailyPlan({ items, backlogItems, commentsMap, objectives
     })
   }
 
+  function handleStartJornada() {
+    const uncompletedItems = items.filter((i) => !i.isCompleted)
+    if (uncompletedItems.length === 0) return
+    const state = { currentIndex: 0, completedPomodoros: 0, phase: 'focus' }
+    localStorage.setItem(JORNADA_STORAGE_KEY, JSON.stringify(state))
+    localStorage.setItem(JORNADA_TIMER_START, Date.now().toString())
+    localStorage.setItem(JORNADA_TIMER_DURATION, JORNADA_FOCUS_MS.toString())
+    router.refresh()
+  }
+
   function handleCreateBacklogTask() {
     if (!backlogTitle.trim() || !backlogObjectiveId) return
     startTransition(async () => {
@@ -165,6 +176,15 @@ export default function DailyPlan({ items, backlogItems, commentsMap, objectives
               <p className="text-xs font-medium text-muted-foreground">
                 {t('completedOf', { completed: completedCount, total: totalCount })}
               </p>
+              {items.some((i) => !i.isCompleted) && (
+                <button
+                  onClick={handleStartJornada}
+                  className="flex items-center gap-1.5 h-8 px-3.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+                >
+                  <Rocket className="size-3.5" />
+                  {t('startJornada')}
+                </button>
+              )}
             </div>
             <div className="h-1 w-full rounded-full bg-muted overflow-hidden">
               <div
