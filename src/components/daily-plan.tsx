@@ -391,7 +391,7 @@ export default function DailyPlan({ items, backlogItems, commentsMap, objectives
                     <button
                       onClick={handleCreateBacklogTask}
                       disabled={isPending || !backlogTitle.trim()}
-                      className="h-8 px-4 rounded-lg text-xs font-medium text-white bg-primary hover:bg-primary/90 transition-colors disabled:opacity-40"
+                      className="h-8 px-4 rounded-lg text-xs font-medium text-primary-foreground bg-primary hover:bg-primary/90 transition-colors disabled:opacity-40"
                     >
                       {t('addBacklog')}
                     </button>

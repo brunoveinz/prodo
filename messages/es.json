@@ -134,14 +134,14 @@
     "emptyTitle": "Sin tareas para hoy",
     "emptySub": "Usa el boton + para agregar tareas al dia",
     "completedOf": "{completed} de {total} completadas",
-    "backlog": "Backlog",
+    "backlog": "Tareas pendientes",
     "addToday": "Hoy",
     "addComment": "Agregar comentario...",
     "newBacklogTask": "Nueva tarea",
     "backlogTaskPlaceholder": "Nombre de la tarea...",
     "cancelBacklog": "Cancelar",
     "addBacklog": "Agregar",
-    "emptyBacklog": "No hay tareas en el backlog"
+    "emptyBacklog": "No hay tareas pendientes"
   },
   "Jornada": {
     "longBreakToast": "Descanso largo",

@@ -134,14 +134,14 @@
     "emptyTitle": "No tasks for today",
     "emptySub": "Use the + button to add tasks for the day",
     "completedOf": "{completed} of {total} completed",
-    "backlog": "Backlog",
+    "backlog": "Pending Tasks",
     "addToday": "Today",
     "addComment": "Add a comment...",
     "newBacklogTask": "New task",
     "backlogTaskPlaceholder": "Task name...",
     "cancelBacklog": "Cancel",
     "addBacklog": "Add",
-    "emptyBacklog": "No tasks in backlog"
+    "emptyBacklog": "No pending tasks"
   },
   "Jornada": {
     "longBreakToast": "Long break",
