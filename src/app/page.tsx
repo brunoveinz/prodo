@@ -104,7 +104,7 @@ export default async function Page({ searchParams }: PageProps) {
                     planItemId: i.id,
                   }))}
               />
-              <DailyPlan items={planItems} backlogItems={backlogItems} commentsMap={commentsMap} />
+              <DailyPlan items={planItems} backlogItems={backlogItems} commentsMap={commentsMap} objectives={objectives} />
             </>
           )}
 

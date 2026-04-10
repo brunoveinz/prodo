@@ -136,7 +136,12 @@
     "completedOf": "{completed} of {total} completed",
     "backlog": "Backlog",
     "addToday": "Today",
-    "addComment": "Add a comment..."
+    "addComment": "Add a comment...",
+    "newBacklogTask": "New task",
+    "backlogTaskPlaceholder": "Task name...",
+    "cancelBacklog": "Cancel",
+    "addBacklog": "Add",
+    "emptyBacklog": "No tasks in backlog"
   },
   "Jornada": {
     "longBreakToast": "Long break",

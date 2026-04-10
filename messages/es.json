@@ -136,7 +136,12 @@
     "completedOf": "{completed} de {total} completadas",
     "backlog": "Backlog",
     "addToday": "Hoy",
-    "addComment": "Agregar comentario..."
+    "addComment": "Agregar comentario...",
+    "newBacklogTask": "Nueva tarea",
+    "backlogTaskPlaceholder": "Nombre de la tarea...",
+    "cancelBacklog": "Cancelar",
+    "addBacklog": "Agregar",
+    "emptyBacklog": "No hay tareas en el backlog"
   },
   "Jornada": {
     "longBreakToast": "Descanso largo",

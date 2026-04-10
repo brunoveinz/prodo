@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { completeTask } from '@/actions/tasks'
 import { removeTaskFromPlan, reorderPlanItems, addTaskToPlan } from '@/actions/daily-plan'
 import { addTaskComment, deleteTaskComment } from '@/actions/comments'
+import { createTask } from '@/actions/tasks'
 import { Play, CheckCircle2, Circle, CalendarDays, X, GripVertical, MessageSquare, Send, Trash2, ChevronDown, ChevronRight, Plus, Inbox } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
@@ -37,13 +38,20 @@ type Comment = {
   createdAt: Date | null
 }
 
+type ObjectiveOption = {
+  id: string
+  name: string
+  color: string
+}
+
 interface DailyPlanProps {
   items: PlanItem[]
   backlogItems: BacklogItem[]
   commentsMap: Record<string, Comment[]>
+  objectives: ObjectiveOption[]
 }
 
-export default function DailyPlan({ items, backlogItems, commentsMap }: DailyPlanProps) {
+export default function DailyPlan({ items, backlogItems, commentsMap, objectives }: DailyPlanProps) {
   const [isPending, startTransition] = useTransition()
   const [dragIdx, setDragIdx] = useState<number | null>(null)
   const [dragOverIdx, setDragOverIdx] = useState<number | null>(null)
@@ -51,6 +59,10 @@ export default function DailyPlan({ items, backlogItems, commentsMap }: DailyPla
   const [expandedTaskId, setExpandedTaskId] = useState<string | null>(null)
   const [commentInput, setCommentInput] = useState('')
   const [showBacklog, setShowBacklog] = useState(false)
+  const [showBacklogForm, setShowBacklogForm] = useState(false)
+  const [backlogTitle, setBacklogTitle] = useState('')
+  const [backlogObjectiveId, setBacklogObjectiveId] = useState(objectives[0]?.id || '')
+  const [backlogPomodoros, setBacklogPomodoros] = useState(1)
   const router = useRouter()
   const t = useTranslations('Plan')
 
@@ -105,6 +117,21 @@ export default function DailyPlan({ items, backlogItems, commentsMap }: DailyPla
     startTransition(async () => {
       await addTaskComment(taskId, commentInput)
       setCommentInput('')
+      router.refresh()
+    })
+  }
+
+  function handleCreateBacklogTask() {
+    if (!backlogTitle.trim() || !backlogObjectiveId) return
+    startTransition(async () => {
+      const formData = new FormData()
+      formData.append('objectiveId', backlogObjectiveId)
+      formData.append('title', backlogTitle.trim())
+      formData.append('estimatedPomodoros', backlogPomodoros.toString())
+      await createTask(formData)
+      setBacklogTitle('')
+      setBacklogPomodoros(1)
+      setShowBacklogForm(false)
       router.refresh()
     })
   }
@@ -296,8 +323,8 @@ export default function DailyPlan({ items, backlogItems, commentsMap }: DailyPla
       </div>
 
       {/* Backlog Section */}
-      {backlogItems.length > 0 && (
-        <div className="space-y-3">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
           <button
             onClick={() => setShowBacklog(!showBacklog)}
             className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
@@ -306,55 +333,127 @@ export default function DailyPlan({ items, backlogItems, commentsMap }: DailyPla
             <Inbox className="h-4 w-4" />
             {t('backlog')} ({backlogItems.length})
           </button>
-
           {showBacklog && (
-            <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/50 shadow-sm animate-in slide-in-from-top-2 duration-200">
-              <div className="divide-y divide-border/40">
-                {backlogItems.map((item) => (
-                  <div
-                    key={item.id}
-                    className="flex items-center gap-3 px-4 py-3 transition-all hover:bg-muted/30"
-                  >
-                    <button
-                      onClick={() => handleToggle(item.id)}
-                      disabled={isPending}
-                      className="shrink-0 cursor-pointer transition-colors"
-                    >
-                      <Circle className="h-[18px] w-[18px] text-muted-foreground/40 hover:text-muted-foreground/70" />
-                    </button>
-
-                    <div
-                      className="w-1.5 h-1.5 rounded-full shrink-0"
-                      style={{ backgroundColor: item.objectiveColor }}
-                    />
-
-                    <div className="flex-1 min-w-0">
-                      <span className="text-sm text-foreground/80 block truncate">
-                        {item.title}
-                      </span>
-                      <div className="flex items-center gap-2">
-                        <span className="text-[11px] text-muted-foreground">{item.objectiveName}</span>
-                        {item.estimatedPomodoros > 1 && (
-                          <span className="text-[11px] text-muted-foreground">· {item.estimatedPomodoros} 🍅</span>
-                        )}
-                      </div>
-                    </div>
-
-                    <button
-                      onClick={() => handleAddToToday(item.id)}
-                      disabled={isPending}
-                      className="shrink-0 flex h-8 items-center gap-1.5 px-3 rounded-lg text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all"
-                    >
-                      <Plus className="h-3 w-3" />
-                      {t('addToday')}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            </div>
+            <button
+              onClick={() => setShowBacklogForm(!showBacklogForm)}
+              className="flex items-center gap-1 text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+            >
+              <Plus className="h-3.5 w-3.5" />
+              {t('newBacklogTask')}
+            </button>
           )}
         </div>
-      )}
+
+        {showBacklog && (
+          <div className="space-y-3 animate-in slide-in-from-top-2 duration-200">
+            {/* Inline form to create backlog task */}
+            {showBacklogForm && (
+              <div className="rounded-2xl border border-border/60 bg-card/80 p-4 space-y-3">
+                <input
+                  type="text"
+                  value={backlogTitle}
+                  onChange={(e) => setBacklogTitle(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') handleCreateBacklogTask() }}
+                  placeholder={t('backlogTaskPlaceholder')}
+                  className="w-full h-9 rounded-lg border border-border/40 bg-secondary/20 px-3 text-sm text-foreground outline-none focus:border-primary transition-colors"
+                  autoFocus
+                />
+                <div className="flex items-center gap-3 flex-wrap">
+                  <select
+                    value={backlogObjectiveId}
+                    onChange={(e) => setBacklogObjectiveId(e.target.value)}
+                    className="h-9 rounded-lg border border-border/40 bg-secondary/20 px-2 text-xs text-foreground outline-none focus:border-primary appearance-none"
+                  >
+                    {objectives.map((obj) => (
+                      <option key={obj.id} value={obj.id}>{obj.name}</option>
+                    ))}
+                  </select>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setBacklogPomodoros(Math.max(1, backlogPomodoros - 1))}
+                      className="flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-secondary/20 text-muted-foreground hover:bg-secondary/40 transition-colors text-sm"
+                    >-</button>
+                    <span className="text-xs font-medium text-foreground min-w-[2.5rem] text-center tabular-nums">{backlogPomodoros} 🍅</span>
+                    <button
+                      type="button"
+                      onClick={() => setBacklogPomodoros(Math.min(10, backlogPomodoros + 1))}
+                      className="flex h-7 w-7 items-center justify-center rounded-md border border-border/60 bg-secondary/20 text-muted-foreground hover:bg-secondary/40 transition-colors text-sm"
+                    >+</button>
+                  </div>
+                  <div className="flex items-center gap-2 ml-auto">
+                    <button
+                      onClick={() => { setShowBacklogForm(false); setBacklogTitle('') }}
+                      className="h-8 px-3 rounded-lg text-xs font-medium text-muted-foreground hover:bg-muted/50 transition-colors"
+                    >
+                      {t('cancelBacklog')}
+                    </button>
+                    <button
+                      onClick={handleCreateBacklogTask}
+                      disabled={isPending || !backlogTitle.trim()}
+                      className="h-8 px-4 rounded-lg text-xs font-medium text-white bg-primary hover:bg-primary/90 transition-colors disabled:opacity-40"
+                    >
+                      {t('addBacklog')}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Backlog items list */}
+            {backlogItems.length > 0 ? (
+              <div className="overflow-hidden rounded-2xl border border-border/60 bg-card/50 shadow-sm">
+                <div className="divide-y divide-border/40">
+                  {backlogItems.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-center gap-3 px-4 py-3 transition-all hover:bg-muted/30"
+                    >
+                      <button
+                        onClick={() => handleToggle(item.id)}
+                        disabled={isPending}
+                        className="shrink-0 cursor-pointer transition-colors"
+                      >
+                        <Circle className="h-[18px] w-[18px] text-muted-foreground/40 hover:text-muted-foreground/70" />
+                      </button>
+
+                      <div
+                        className="w-1.5 h-1.5 rounded-full shrink-0"
+                        style={{ backgroundColor: item.objectiveColor }}
+                      />
+
+                      <div className="flex-1 min-w-0">
+                        <span className="text-sm text-foreground/80 block truncate">
+                          {item.title}
+                        </span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-[11px] text-muted-foreground">{item.objectiveName}</span>
+                          {item.estimatedPomodoros > 1 && (
+                            <span className="text-[11px] text-muted-foreground">· {item.estimatedPomodoros} 🍅</span>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        onClick={() => handleAddToToday(item.id)}
+                        disabled={isPending}
+                        className="shrink-0 flex h-8 items-center gap-1.5 px-3 rounded-lg text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all"
+                      >
+                        <Plus className="h-3 w-3" />
+                        {t('addToday')}
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            ) : !showBacklogForm && (
+              <div className="text-center py-6">
+                <p className="text-xs text-muted-foreground">{t('emptyBacklog')}</p>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
