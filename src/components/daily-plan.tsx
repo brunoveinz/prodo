@@ -313,12 +313,21 @@ export default function DailyPlan({ items, backlogItems, commentsMap }: DailyPla
                 {backlogItems.map((item) => (
                   <div
                     key={item.id}
-                    className="group flex items-center gap-3 px-4 py-2.5 transition-all hover:bg-muted/30"
+                    className="flex items-center gap-3 px-4 py-3 transition-all hover:bg-muted/30"
                   >
+                    <button
+                      onClick={() => handleToggle(item.id)}
+                      disabled={isPending}
+                      className="shrink-0 cursor-pointer transition-colors"
+                    >
+                      <Circle className="h-[18px] w-[18px] text-muted-foreground/40 hover:text-muted-foreground/70" />
+                    </button>
+
                     <div
                       className="w-1.5 h-1.5 rounded-full shrink-0"
                       style={{ backgroundColor: item.objectiveColor }}
                     />
+
                     <div className="flex-1 min-w-0">
                       <span className="text-sm text-foreground/80 block truncate">
                         {item.title}
@@ -330,10 +339,11 @@ export default function DailyPlan({ items, backlogItems, commentsMap }: DailyPla
                         )}
                       </div>
                     </div>
+
                     <button
                       onClick={() => handleAddToToday(item.id)}
                       disabled={isPending}
-                      className="shrink-0 flex h-7 items-center gap-1 px-2 rounded-md text-xs font-medium text-primary bg-primary/5 hover:bg-primary/15 border border-primary/20 transition-all opacity-0 group-hover:opacity-100"
+                      className="shrink-0 flex h-8 items-center gap-1.5 px-3 rounded-lg text-xs font-medium text-primary bg-primary/10 hover:bg-primary/20 border border-primary/20 transition-all"
                     >
                       <Plus className="h-3 w-3" />
                       {t('addToday')}
