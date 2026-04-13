@@ -8,7 +8,7 @@ import { removeTaskFromPlan, reorderPlanItems, addTaskToPlan } from '@/actions/d
 import { addTaskComment, deleteTaskComment } from '@/actions/comments'
 import { createTask } from '@/actions/tasks'
 import { JORNADA_STORAGE_KEY, JORNADA_TIMER_START, JORNADA_TIMER_DURATION, JORNADA_FOCUS_MS } from './jornada-launcher'
-import { Play, CheckCircle2, Circle, CalendarDays, X, GripVertical, MessageSquare, Send, Trash2, ChevronDown, ChevronRight, Plus, Inbox, Rocket } from 'lucide-react'
+import { Play, CheckCircle2, Circle, CalendarDays, X, GripVertical, MessageSquare, Send, Trash2, ChevronDown, ChevronRight, Plus, Inbox } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 type PlanItem = {
@@ -129,7 +129,7 @@ export default function DailyPlan({ items, backlogItems, commentsMap, objectives
     localStorage.setItem(JORNADA_STORAGE_KEY, JSON.stringify(state))
     localStorage.setItem(JORNADA_TIMER_START, Date.now().toString())
     localStorage.setItem(JORNADA_TIMER_DURATION, JORNADA_FOCUS_MS.toString())
-    router.refresh()
+    window.dispatchEvent(new Event('jornada-start'))
   }
 
   function handleCreateBacklogTask() {
@@ -179,9 +179,9 @@ export default function DailyPlan({ items, backlogItems, commentsMap, objectives
               {items.some((i) => !i.isCompleted) && (
                 <button
                   onClick={handleStartJornada}
-                  className="flex items-center gap-1.5 h-8 px-3.5 rounded-xl text-xs font-bold text-white bg-gradient-to-r from-violet-600 to-blue-600 hover:from-violet-700 hover:to-blue-700 shadow-md transition-all hover:scale-[1.02] active:scale-[0.98]"
+                  className="flex items-center gap-1.5 h-8 px-3.5 rounded-lg text-xs font-semibold text-white bg-violet-600 hover:bg-violet-500 active:bg-violet-700 transition-colors"
                 >
-                  <Rocket className="size-3.5" />
+                  <Play className="size-3.5 fill-current" />
                   {t('startJornada')}
                 </button>
               )}

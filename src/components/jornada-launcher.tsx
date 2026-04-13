@@ -203,8 +203,8 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [timer.isRunning, timer.remainingMs])
 
-  // Hydrate on mount
-  useEffect(() => {
+  // Hydrate from localStorage
+  const hydrateJornada = useCallback(() => {
     try {
       const stored = localStorage.getItem(JORNADA_STORAGE_KEY)
       if (stored) {
@@ -214,9 +214,7 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
         if ((rem !== null && rem > 0) || paused) {
           setJornadaState(state)
           if (rem !== null && rem > 0) {
-            timer.start(0) // will read from localStorage
-            // Actually need to resume properly
-            localStorage.setItem(JORNADA_TIMER_START, localStorage.getItem(JORNADA_TIMER_START) || Date.now().toString())
+            timer.start(rem)
           }
         } else {
           clearJornada()
@@ -225,6 +223,20 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
     } catch { clearJornada() }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  // Hydrate on mount
+  useEffect(() => {
+    hydrateJornada()
+  }, [hydrateJornada])
+
+  // Listen for jornada-start event from DailyPlan
+  useEffect(() => {
+    function onJornadaStart() {
+      hydrateJornada()
+    }
+    window.addEventListener('jornada-start', onJornadaStart)
+    return () => window.removeEventListener('jornada-start', onJornadaStart)
+  }, [hydrateJornada])
 
   // Persist state
   useEffect(() => {
