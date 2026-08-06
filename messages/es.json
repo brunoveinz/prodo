@@ -80,7 +80,15 @@
       "calendar": "Calendario"
     },
     "calendar": {
-      "days": { "mon": "Lun", "tue": "Mar", "wed": "Mié", "thu": "Jue", "fri": "Vie", "sat": "Sáb", "sun": "Dom" },
+      "days": {
+        "mon": "Lun",
+        "tue": "Mar",
+        "wed": "Mié",
+        "thu": "Jue",
+        "fri": "Vie",
+        "sat": "Sáb",
+        "sun": "Dom"
+      },
       "close": "Cerrar",
       "empty": "Sin sesiones este dia.",
       "hours": "Horas",
@@ -142,7 +150,9 @@
     "cancelBacklog": "Cancelar",
     "addBacklog": "Agregar",
     "startJornada": "Comenzar",
-    "emptyBacklog": "No hay tareas pendientes"
+    "emptyBacklog": "No hay tareas pendientes",
+    "addCycle": "Agregar ciclo",
+    "removeCycle": "Quitar ciclo"
   },
   "Jornada": {
     "longBreakToast": "Descanso largo",
@@ -171,7 +181,11 @@
     "pauseBtn": "Pausar Sesión",
     "resumeBtn": "Reanudar Sesión",
     "taskDoneBtn": "Tarea Completada",
-    "stopBtn": "Detener Jornada"
+    "stopBtn": "Detener Jornada",
+    "addCycleBtn": "Agregar otro ciclo",
+    "cycleAdded": "Ahora esta tarea tiene {count} ciclos",
+    "cycleXofY": "Ciclo {current} de {total}",
+    "breakSameTask": "Sigues en «{title}» — ciclo {current} de {total}"
   },
   "Selector": {
     "Objectives": {

@@ -8,13 +8,13 @@ import { Badge } from '@/components/ui/badge'
 import { useToast } from '@/components/ui/notification'
 import {
   Play, Square, Zap, AlertTriangle, Coffee,
-  SkipForward, CheckCircle2, Pause, Trophy, GripVertical
+  SkipForward, CheckCircle2, Pause, Trophy, GripVertical, Plus
 } from 'lucide-react'
 import DotGrid from './dot-grid'
 import Confetti from './confetti'
 import { createPomodoroSession } from '@/actions/sessions'
 import { logDistraction } from '@/actions/distractions'
-import { completeTask } from '@/actions/tasks'
+import { completeTask, updateTaskPomodoros } from '@/actions/tasks'
 import { reorderPlanItems } from '@/actions/daily-plan'
 import { useTranslations } from 'next-intl'
 
@@ -39,6 +39,7 @@ type JornadaTask = {
   objectiveId: string
   objectiveColor: string
   planItemId: string
+  estimatedPomodoros: number
 }
 
 interface JornadaLauncherProps {
@@ -51,6 +52,10 @@ interface JornadaState {
   currentIndex: number
   completedPomodoros: number
   phase: Phase
+  /** Pomodoros already completed on the current task */
+  cyclesDone: number
+  /** When true, the break returns to the same task instead of advancing */
+  resumeSameTask: boolean
 }
 
 // Audio helpers
@@ -93,9 +98,13 @@ function playChime() {
 }
 
 // Timer hook
-function useJornadaTimer() {
+function useJornadaTimer(onExpire: () => void) {
   const [remainingMs, setRemainingMs] = useState(0)
   const [isRunning, setIsRunning] = useState(false)
+  const onExpireRef = useRef(onExpire)
+  useEffect(() => {
+    onExpireRef.current = onExpire
+  })
 
   const start = useCallback((durationMs: number) => {
     localStorage.setItem(JORNADA_TIMER_START, Date.now().toString())
@@ -158,6 +167,8 @@ function useJornadaTimer() {
         localStorage.removeItem(JORNADA_TIMER_START)
         localStorage.removeItem(JORNADA_TIMER_DURATION)
         setIsRunning(false)
+        // Only a natural expiry advances the jornada. Manual stop/pause never does.
+        onExpireRef.current()
       }
     }, 100)
     return () => clearInterval(interval)
@@ -180,35 +191,34 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
   const [showDistractionFlash, setShowDistractionFlash] = useState(false)
   const [showConfetti, setShowConfetti] = useState(false)
   const toast = useToast()
-  const timer = useJornadaTimer()
   const router = useRouter()
   const t = useTranslations('Jornada')
-
-  useEffect(() => {
-    setLocalTasks(tasks)
-  }, [tasks])
 
   const jornadaRef = useRef(jornadaState)
   jornadaRef.current = jornadaState
   const distractionRef = useRef(distractionBuffer)
   distractionRef.current = distractionBuffer
 
-  // Detect timer completion
-  const prevRunning = useRef(timer.isRunning)
+  // The timer only calls this on a natural expiry, never on a manual stop/pause.
+  const phaseCompleteRef = useRef<() => void>(() => {})
+  const timer = useJornadaTimer(() => phaseCompleteRef.current())
+
+  // While a jornada is running the queue stays frozen: completing a task
+  // revalidates the server data and drops it from `tasks`, which would shift
+  // every index and make the jornada skip the following task.
   useEffect(() => {
-    if (prevRunning.current && !timer.isRunning && timer.remainingMs <= 0) {
-      handlePhaseComplete()
-    }
-    prevRunning.current = timer.isRunning
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [timer.isRunning, timer.remainingMs])
+    if (jornadaRef.current) return
+    setLocalTasks(tasks)
+  }, [tasks])
 
   // Hydrate from localStorage
   const hydrateJornada = useCallback(() => {
     try {
       const stored = localStorage.getItem(JORNADA_STORAGE_KEY)
       if (stored) {
-        const state: JornadaState = JSON.parse(stored)
+        const parsed = JSON.parse(stored)
+        // States persisted before cycles existed lack these fields.
+        const state: JornadaState = { cyclesDone: 0, resumeSameTask: false, ...parsed }
         const rem = timer.getRemaining()
         const paused = localStorage.getItem('prodo_jornada_paused')
         if ((rem !== null && rem > 0) || paused) {
@@ -275,6 +285,44 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
     }
   }
 
+  /** Starts the break that follows a finished focus block. */
+  function goToBreak(state: JornadaState, completedPomodoros: number, cyclesDone: number, resumeSameTask: boolean) {
+    const isLong = completedPomodoros % LONG_BREAK_EVERY === 0
+    const breakMin = isLong ? LONG_BREAK_MINUTES : SHORT_BREAK_MINUTES
+    setJornadaState({ ...state, completedPomodoros, cyclesDone, resumeSameTask, phase: 'break' })
+    setDistractionBuffer([])
+    timer.start(breakMin * 60 * 1000)
+    toast({ title: isLong ? t('longBreakToast') : t('shortBreakToast'), variant: 'info' })
+  }
+
+  /** Leaves the break: either another cycle on the same task, or the next task. */
+  function leaveBreak(state: JornadaState) {
+    timer.stop()
+    const nextIndex = state.resumeSameTask ? state.currentIndex : state.currentIndex + 1
+
+    if (nextIndex > localTasks.length - 1) {
+      setJornadaState({ ...state, phase: 'done' })
+      toast({ title: t('completedToast'), variant: 'success' })
+      return
+    }
+
+    setJornadaState({
+      ...state,
+      currentIndex: nextIndex,
+      cyclesDone: state.resumeSameTask ? state.cyclesDone : 0,
+      resumeSameTask: false,
+      phase: 'focus',
+    })
+    setDistractionBuffer([])
+    timer.start(FOCUS_MINUTES * 60 * 1000)
+    playStartTone()
+
+    const nextTask = localTasks[nextIndex]
+    if (nextTask && !state.resumeSameTask) {
+      toast({ title: t('nextToast', { title: nextTask.taskTitle }), variant: 'info' })
+    }
+  }
+
   async function handlePhaseComplete() {
     const state = jornadaRef.current
     if (!state) return
@@ -287,34 +335,44 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
       }
 
       const newPomodoros = state.completedPomodoros + 1
+      const cyclesDone = state.cyclesDone + 1
+      // The task keeps the timer until it has burned all of its planned cycles.
+      const needsMoreCycles = !!currentTask && cyclesDone < currentTask.estimatedPomodoros
       const hasMoreTasks = state.currentIndex < localTasks.length - 1
 
-      if (hasMoreTasks) {
-        // Go to break, then next task
-        const isLong = newPomodoros % LONG_BREAK_EVERY === 0
-        const breakMin = isLong ? LONG_BREAK_MINUTES : SHORT_BREAK_MINUTES
-        const newState: JornadaState = { ...state, completedPomodoros: newPomodoros, phase: 'break' }
-        setJornadaState(newState)
-        timer.start(breakMin * 60 * 1000)
-        toast({ title: isLong ? t('longBreakToast') : t('shortBreakToast'), variant: 'info' })
+      if (needsMoreCycles || hasMoreTasks) {
+        goToBreak(state, newPomodoros, cyclesDone, needsMoreCycles)
       } else {
-        // All tasks done
-        setJornadaState({ ...state, completedPomodoros: newPomodoros, phase: 'done' })
+        setJornadaState({ ...state, completedPomodoros: newPomodoros, cyclesDone, phase: 'done' })
         toast({ title: t('completedToast'), variant: 'success' })
       }
     } else if (state.phase === 'break') {
-      // Move to next task
-      const nextIndex = state.currentIndex + 1
-      const newState: JornadaState = { ...state, currentIndex: nextIndex, phase: 'focus' }
-      setJornadaState(newState)
-      setDistractionBuffer([])
-      timer.start(FOCUS_MINUTES * 60 * 1000)
-      playStartTone()
-      const nextTask = localTasks[nextIndex]
-      if (nextTask) {
-        toast({ title: t('nextToast', { title: nextTask.taskTitle }), variant: 'info' })
-      }
+      leaveBreak(state)
     }
+  }
+
+  phaseCompleteRef.current = () => { void handlePhaseComplete() }
+
+  /** Adds one more cycle to the task in progress (and persists the estimate). */
+  async function addCycleToCurrentTask() {
+    const state = jornadaRef.current
+    if (!state) return
+    const task = localTasks[state.currentIndex]
+    if (!task) return
+
+    const next = Math.min(20, task.estimatedPomodoros + 1)
+    setLocalTasks((prev) =>
+      prev.map((tItem) => (tItem.taskId === task.taskId ? { ...tItem, estimatedPomodoros: next } : tItem))
+    )
+    // If the task was already heading to the next one, keep it on this task.
+    if (state.phase === 'break' && !state.resumeSameTask && state.cyclesDone < next) {
+      setJornadaState({ ...state, resumeSameTask: true })
+    }
+    toast({ title: t('cycleAdded', { count: next }), variant: 'info' })
+
+    try {
+      await updateTaskPomodoros(task.taskId, next)
+    } catch { /* keeps the optimistic value */ }
   }
 
   function handleAbort() {
@@ -392,13 +450,8 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
     const hasMore = jornadaState.currentIndex < localTasks.length - 1
 
     if (hasMore) {
-      const isLong = newPomodoros % LONG_BREAK_EVERY === 0
-      const breakMin = isLong ? LONG_BREAK_MINUTES : SHORT_BREAK_MINUTES
-      
-      setJornadaState({ ...jornadaState, completedPomodoros: newPomodoros, phase: 'break' })
-      setDistractionBuffer([])
-      timer.start(breakMin * 60 * 1000)
-      toast({ title: isLong ? t('longBreakToast') : t('shortBreakToast'), variant: 'info' })
+      // The task is done for good, so the break always leads to the next one.
+      goToBreak(jornadaState, newPomodoros, 0, false)
     } else {
       setJornadaState({ ...jornadaState, completedPomodoros: newPomodoros, phase: 'done' })
       toast({ title: t('completedToast'), variant: 'success' })
@@ -421,8 +474,12 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
       return
     }
     const reordered = [...localTasks]
-    const absDrag = dragIdx + jornadaState.currentIndex + 1
-    const absDrop = dragOverIdx + jornadaState.currentIndex + 1
+    // Must match the slice offset used to render the upcoming list.
+    const offset = jornadaState.phase === 'break' && jornadaState.resumeSameTask
+      ? jornadaState.currentIndex
+      : jornadaState.currentIndex + 1
+    const absDrag = dragIdx + offset
+    const absDrop = dragOverIdx + offset
     
     // Bounds check
     if (absDrag < localTasks.length && absDrop < localTasks.length) {
@@ -445,7 +502,13 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
   }
 
   const currentTask = localTasks[jornadaState.currentIndex]
-  const upcomingTasks = localTasks.slice(jornadaState.currentIndex + 1)
+  const breakTask = jornadaState.phase === 'break' ? currentTask : undefined
+  // During a break that returns to the same task, that task still counts as upcoming.
+  const upcomingOffset =
+    jornadaState.phase === 'break' && jornadaState.resumeSameTask
+      ? jornadaState.currentIndex
+      : jornadaState.currentIndex + 1
+  const upcomingTasks = localTasks.slice(upcomingOffset)
 
   // Display helpers
   const currentDurationMs = jornadaState.phase === 'break'
@@ -510,6 +573,15 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
             <p className="text-xs sm:text-sm text-blue-200/50">
               {isLong ? t('breakLong') : t('breakShort')}
             </p>
+            {breakTask && jornadaState.resumeSameTask && (
+              <p className="text-xs sm:text-sm text-blue-100/70">
+                {t('breakSameTask', {
+                  title: breakTask.taskTitle,
+                  current: jornadaState.cyclesDone + 1,
+                  total: Math.max(breakTask.estimatedPomodoros, jornadaState.cyclesDone + 1),
+                })}
+              </p>
+            )}
           </div>
 
           {upcomingTasks.length > 0 && (
@@ -546,21 +618,26 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
             <span className="absolute text-5xl sm:text-6xl font-mono font-medium tracking-tight text-blue-100/80 tabular-nums">{displayMin}:{displaySec}</span>
           </div>
 
-          <Button
-            onClick={() => {
-              timer.stop()
-              const nextIndex = jornadaState.currentIndex + 1
-              setJornadaState({ ...jornadaState, currentIndex: nextIndex, phase: 'focus' })
-              setDistractionBuffer([])
-              timer.start(FOCUS_MINUTES * 60 * 1000)
-              playStartTone()
-            }}
-            variant="ghost" size="sm"
-            className="text-xs text-blue-300/40 hover:text-blue-200 hover:bg-blue-500/10 gap-1.5 rounded-lg"
-          >
-            <SkipForward className="size-3" />
-            {t('skipBreak')}
-          </Button>
+          <div className="flex flex-col items-center gap-2">
+            {breakTask && (
+              <Button
+                onClick={addCycleToCurrentTask}
+                variant="outline" size="sm"
+                className="gap-1.5 rounded-lg border-blue-400/30 bg-blue-500/5 text-xs text-blue-200 hover:bg-blue-500/15 hover:border-blue-400/50"
+              >
+                <Plus className="size-3" />
+                {t('addCycleBtn')}
+              </Button>
+            )}
+            <Button
+              onClick={() => leaveBreak(jornadaState)}
+              variant="ghost" size="sm"
+              className="text-xs text-blue-300/40 hover:text-blue-200 hover:bg-blue-500/10 gap-1.5 rounded-lg"
+            >
+              <SkipForward className="size-3" />
+              {t('skipBreak')}
+            </Button>
+          </div>
         </div>
       </div>
     )
@@ -642,6 +719,12 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
                 <span className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground mt-1">
                   {timer.isRunning ? t('deepWork') : timer.isPaused ? t('pausedState') : t('pausedState')}
                 </span>
+                <span className="text-[10px] font-medium text-muted-foreground/70 mt-1 tabular-nums">
+                  {t('cycleXofY', {
+                    current: jornadaState.cyclesDone + 1,
+                    total: Math.max(currentTask.estimatedPomodoros, jornadaState.cyclesDone + 1),
+                  })}
+                </span>
               </div>
               {distractionBuffer.length > 0 && (
                 <Badge variant="secondary" className="absolute -top-1 right-4 gap-1 px-2.5 py-1 text-sm font-semibold shadow-md bg-destructive text-white">
@@ -684,6 +767,16 @@ export default function JornadaLauncher({ tasks }: JornadaLauncherProps) {
                 {t('resumeBtn')}
               </Button>
             ) : null}
+
+            {/* Add another cycle to this task */}
+            <Button
+              onClick={addCycleToCurrentTask}
+              variant="outline" size="lg"
+              className="w-full h-12 text-[14px] font-medium gap-2 border-border/60 bg-secondary/10 text-muted-foreground hover:bg-secondary/25 hover:text-foreground transition-all duration-300 active:scale-[0.98] rounded-xl"
+            >
+              <Plus className="size-4" />
+              {t('addCycleBtn')}
+            </Button>
 
             {/* Mark task done */}
             <Button

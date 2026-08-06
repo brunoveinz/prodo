@@ -80,7 +80,15 @@
       "calendar": "Calendar"
     },
     "calendar": {
-      "days": { "mon": "Mon", "tue": "Tue", "wed": "Wed", "thu": "Thu", "fri": "Fri", "sat": "Sat", "sun": "Sun" },
+      "days": {
+        "mon": "Mon",
+        "tue": "Tue",
+        "wed": "Wed",
+        "thu": "Thu",
+        "fri": "Fri",
+        "sat": "Sat",
+        "sun": "Sun"
+      },
       "close": "Close",
       "empty": "No sessions on this day.",
       "hours": "Hours",
@@ -142,7 +150,9 @@
     "cancelBacklog": "Cancel",
     "addBacklog": "Add",
     "startJornada": "Start",
-    "emptyBacklog": "No pending tasks"
+    "emptyBacklog": "No pending tasks",
+    "addCycle": "Add cycle",
+    "removeCycle": "Remove cycle"
   },
   "Jornada": {
     "longBreakToast": "Long break",
@@ -171,7 +181,11 @@
     "pauseBtn": "Pause Session",
     "resumeBtn": "Resume Session",
     "taskDoneBtn": "Task Completed",
-    "stopBtn": "Stop Journey"
+    "stopBtn": "Stop Journey",
+    "addCycleBtn": "Add another cycle",
+    "cycleAdded": "This task now has {count} cycles",
+    "cycleXofY": "Cycle {current} of {total}",
+    "breakSameTask": "Still on “{title}” — cycle {current} of {total}"
   },
   "Selector": {
     "Objectives": {

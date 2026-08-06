@@ -102,6 +102,7 @@ export default async function Page({ searchParams }: PageProps) {
                     objectiveId: i.objectiveId,
                     objectiveColor: i.objectiveColor,
                     planItemId: i.id,
+                    estimatedPomodoros: i.estimatedPomodoros ?? 1,
                   }))}
               />
               <DailyPlan items={planItems} backlogItems={backlogItems} commentsMap={commentsMap} objectives={objectives} />

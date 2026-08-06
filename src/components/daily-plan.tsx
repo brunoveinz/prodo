@@ -6,9 +6,9 @@ import { useRouter } from 'next/navigation'
 import { completeTask } from '@/actions/tasks'
 import { removeTaskFromPlan, reorderPlanItems, addTaskToPlan } from '@/actions/daily-plan'
 import { addTaskComment, deleteTaskComment } from '@/actions/comments'
-import { createTask } from '@/actions/tasks'
+import { createTask, updateTaskPomodoros } from '@/actions/tasks'
 import { JORNADA_STORAGE_KEY, JORNADA_TIMER_START, JORNADA_TIMER_DURATION, JORNADA_FOCUS_MS } from './jornada-launcher'
-import { Play, CheckCircle2, Circle, CalendarDays, X, GripVertical, MessageSquare, Send, Trash2, ChevronDown, ChevronRight, Plus, Inbox } from 'lucide-react'
+import { Play, CheckCircle2, Circle, CalendarDays, X, GripVertical, MessageSquare, Send, Trash2, ChevronDown, ChevronRight, Plus, Minus, Inbox } from 'lucide-react'
 import { useTranslations } from 'next-intl'
 
 type PlanItem = {
@@ -64,6 +64,7 @@ export default function DailyPlan({ items, backlogItems, commentsMap, objectives
   const [backlogTitle, setBacklogTitle] = useState('')
   const [backlogObjectiveId, setBacklogObjectiveId] = useState(objectives[0]?.id || '')
   const [backlogPomodoros, setBacklogPomodoros] = useState(1)
+  const [cycleOverrides, setCycleOverrides] = useState<Record<string, number>>({})
   const router = useRouter()
   const t = useTranslations('Plan')
 
@@ -125,7 +126,7 @@ export default function DailyPlan({ items, backlogItems, commentsMap, objectives
   function handleStartJornada() {
     const uncompletedItems = items.filter((i) => !i.isCompleted)
     if (uncompletedItems.length === 0) return
-    const state = { currentIndex: 0, completedPomodoros: 0, phase: 'focus' }
+    const state = { currentIndex: 0, completedPomodoros: 0, phase: 'focus', cyclesDone: 0, resumeSameTask: false }
     localStorage.setItem(JORNADA_STORAGE_KEY, JSON.stringify(state))
     localStorage.setItem(JORNADA_TIMER_START, Date.now().toString())
     localStorage.setItem(JORNADA_TIMER_DURATION, JORNADA_FOCUS_MS.toString())
@@ -145,6 +146,42 @@ export default function DailyPlan({ items, backlogItems, commentsMap, objectives
       setShowBacklogForm(false)
       router.refresh()
     })
+  }
+
+  function handleChangeCycles(taskId: string, current: number, delta: number) {
+    const next = Math.min(20, Math.max(1, current + delta))
+    if (next === current) return
+    setCycleOverrides((prev) => ({ ...prev, [taskId]: next }))
+    startTransition(async () => {
+      await updateTaskPomodoros(taskId, next)
+      router.refresh()
+    })
+  }
+
+  function CycleStepper({ taskId, cycles }: { taskId: string; cycles: number }) {
+    return (
+      <div className="flex items-center gap-0.5 shrink-0">
+        <button
+          onClick={() => handleChangeCycles(taskId, cycles, -1)}
+          disabled={isPending || cycles <= 1}
+          aria-label={t('removeCycle')}
+          className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30"
+        >
+          <Minus className="h-3 w-3" />
+        </button>
+        <span className="text-[11px] font-medium text-muted-foreground tabular-nums min-w-[2.75rem] text-center">
+          {cycles} 🍅
+        </span>
+        <button
+          onClick={() => handleChangeCycles(taskId, cycles, 1)}
+          disabled={isPending || cycles >= 20}
+          aria-label={t('addCycle')}
+          className="flex h-6 w-6 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-foreground transition-colors disabled:opacity-30"
+        >
+          <Plus className="h-3 w-3" />
+        </button>
+      </div>
+    )
   }
 
   function handleDeleteComment(commentId: string) {
@@ -244,13 +281,13 @@ export default function DailyPlan({ items, backlogItems, commentsMap, objectives
                           >
                             {item.taskTitle}
                           </span>
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] text-muted-foreground">{item.objectiveName}</span>
-                            {item.estimatedPomodoros > 1 && (
-                              <span className="text-[11px] text-muted-foreground">· {item.estimatedPomodoros} 🍅</span>
-                            )}
-                          </div>
+                          <span className="text-[11px] text-muted-foreground">{item.objectiveName}</span>
                         </div>
+
+                        <CycleStepper
+                          taskId={item.taskId}
+                          cycles={cycleOverrides[item.taskId] ?? item.estimatedPomodoros}
+                        />
 
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
                           <button
@@ -266,7 +303,7 @@ export default function DailyPlan({ items, backlogItems, commentsMap, objectives
                               </span>
                             )}
                           </button>
-                          {!item.isCompleted && (
+                          {!item.isCompleted ? (
                             <Link
                               href={`/?objective=${item.objectiveId}&task=${item.taskId}&from=plan`}
                               className="flex h-7 w-7 items-center justify-center rounded-md transition-all"
@@ -277,6 +314,9 @@ export default function DailyPlan({ items, backlogItems, commentsMap, objectives
                                 style={{ color: item.objectiveColor }}
                               />
                             </Link>
+                          ) : (
+                            // Keeps the action row the same width so the cycle stepper stays aligned.
+                            <div className="h-7 w-7" aria-hidden />
                           )}
                           <button
                             onClick={() => handleRemove(item.id)}
@@ -446,13 +486,13 @@ export default function DailyPlan({ items, backlogItems, commentsMap, objectives
                         <span className="text-sm text-foreground/80 block truncate">
                           {item.title}
                         </span>
-                        <div className="flex items-center gap-2">
-                          <span className="text-[11px] text-muted-foreground">{item.objectiveName}</span>
-                          {item.estimatedPomodoros > 1 && (
-                            <span className="text-[11px] text-muted-foreground">· {item.estimatedPomodoros} 🍅</span>
-                          )}
-                        </div>
+                        <span className="text-[11px] text-muted-foreground">{item.objectiveName}</span>
                       </div>
+
+                      <CycleStepper
+                        taskId={item.id}
+                        cycles={cycleOverrides[item.id] ?? item.estimatedPomodoros}
+                      />
 
                       <button
                         onClick={() => handleAddToToday(item.id)}

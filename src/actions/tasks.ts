@@ -113,6 +113,44 @@ export async function getBacklogTasks() {
   return backlog
 }
 
+export async function updateTaskPomodoros(taskId: string, estimatedPomodoros: number) {
+  const session = await auth()
+  if (!session?.user?.id) {
+    throw new Error('Not authenticated')
+  }
+
+  const value = Math.min(20, Math.max(1, Math.round(estimatedPomodoros)))
+
+  const [task] = await db
+    .select()
+    .from(tasks)
+    .where(eq(tasks.id, taskId))
+    .limit(1)
+
+  if (!task) {
+    throw new Error('Task not found')
+  }
+
+  const [objective] = await db
+    .select()
+    .from(objectives)
+    .where(and(eq(objectives.id, task.objectiveId), eq(objectives.userId, session.user.id)))
+    .limit(1)
+
+  if (!objective) {
+    throw new Error('Unauthorized')
+  }
+
+  const [updated] = await db
+    .update(tasks)
+    .set({ estimatedPomodoros: value })
+    .where(eq(tasks.id, taskId))
+    .returning()
+
+  revalidatePath('/')
+  return updated
+}
+
 export async function completeTask(taskId: string) {
   const session = await auth()
   if (!session?.user?.id) {
